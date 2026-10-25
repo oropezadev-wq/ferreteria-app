@@ -1,0 +1,73 @@
+<h1 class="h4 mb-3">Panel principal</h1>
+
+@if (error()) {
+  <div class="alert alert-danger">{{ error() }}</div>
+}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="tarjeta h-100">
+      <div class="text-muted small">Productos activos</div>
+      <div class="fs-3 fw-bold">{{ resumen()?.productosActivos ?? '—' }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="tarjeta h-100">
+      <div class="text-muted small">Con stock bajo</div>
+      <div class="fs-3 fw-bold text-danger">{{ resumen()?.productosStockBajo ?? '—' }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="tarjeta h-100">
+      <div class="text-muted small">Valor del inventario</div>
+      <div class="fs-3 fw-bold">{{ (resumen()?.valorInventario ?? 0) | currency: 'PEN' : 'S/ ' }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="tarjeta h-100">
+      <div class="text-muted small">Movimientos de hoy</div>
+      <div class="fs-3 fw-bold">{{ resumen()?.movimientosHoy ?? '—' }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="tarjeta">
+      <h2 class="h6"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Productos por reponer</h2>
+      @if (alertas().length === 0) {
+        <p class="text-muted mb-0">No hay productos por debajo de su stock mínimo.</p>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Código</th><th>Producto</th><th class="text-end">Stock</th><th class="text-end">Mínimo</th></tr></thead>
+            <tbody>
+              @for (p of alertas(); track p.id) {
+                <tr class="fila-stock-bajo">
+                  <td>{{ p.codigo }}</td>
+                  <td>{{ p.descripcion }}</td>
+                  <td class="text-end fw-bold">{{ p.stock }}</td>
+                  <td class="text-end">{{ p.stockMinimo }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (auth.esAdministrador()) {
+          <a routerLink="/inventario" class="btn btn-sm btn-marca mt-3">Registrar entrada de mercadería</a>
+        }
+      }
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="tarjeta">
+      <h2 class="h6"><i class="bi bi-cash-coin me-1"></i>Caja y ventas del día</h2>
+      <div class="aviso-prototipo mb-2">Datos de ejemplo: el módulo de ventas se implementa en la siguiente iteración.</div>
+      <ul class="list-unstyled mb-0">
+        <li class="d-flex justify-content-between py-1"><span>Estado de la caja</span><span class="badge text-bg-success">Abierta</span></li>
+        <li class="d-flex justify-content-between py-1"><span>Ventas del día</span><strong>S/ 1,284.50</strong></li>
+        <li class="d-flex justify-content-between py-1"><span>Número de ventas</span><strong>23</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>

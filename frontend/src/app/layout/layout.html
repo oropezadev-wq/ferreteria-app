@@ -1,0 +1,36 @@
+<div class="d-flex min-vh-100">
+  <nav class="lateral text-white p-3" [class.abierto]="menuAbierto()">
+    <div class="d-flex align-items-center gap-2 mb-4 px-2">
+      <i class="bi bi-tools fs-4 text-warning"></i>
+      <span class="fw-bold">Ferretería</span>
+    </div>
+    <ul class="nav flex-column gap-1">
+      @for (opcion of opciones(); track opcion.ruta) {
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="opcion.ruta" routerLinkActive="activo" (click)="menuAbierto.set(false)">
+            <i class="bi {{ opcion.icono }} me-2"></i>{{ opcion.texto }}
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <div class="flex-grow-1 d-flex flex-column contenido">
+    <header class="bg-white border-bottom px-3 py-2 d-flex align-items-center gap-3">
+      <button class="btn btn-outline-secondary btn-sm d-md-none" (click)="menuAbierto.set(!menuAbierto())"
+              aria-label="Abrir menú">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="ms-auto text-end small">
+        <div class="fw-semibold">{{ auth.usuario()?.nombre }}</div>
+        <div class="text-muted">{{ auth.esAdministrador() ? 'Administrador' : 'Vendedor' }}</div>
+      </div>
+      <button class="btn btn-outline-secondary btn-sm" (click)="salir()">
+        <i class="bi bi-box-arrow-right"></i> Salir
+      </button>
+    </header>
+    <main class="p-3 p-md-4">
+      <router-outlet />
+    </main>
+  </div>
+</div>

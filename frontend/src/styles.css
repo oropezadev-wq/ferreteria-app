@@ -1,0 +1,38 @@
+:root {
+  --color-marca: #c2410c;
+  --color-lateral: #1f2937;
+}
+
+body {
+  background: #f3f4f6;
+}
+
+.btn-marca {
+  --bs-btn-bg: var(--color-marca);
+  --bs-btn-border-color: var(--color-marca);
+  --bs-btn-hover-bg: #9a3412;
+  --bs-btn-hover-border-color: #9a3412;
+  --bs-btn-active-bg: #7c2d12;
+  --bs-btn-color: #fff;
+  --bs-btn-hover-color: #fff;
+}
+
+.tarjeta {
+  background: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+  padding: 1.25rem;
+}
+
+/* Aviso en las pantallas que todavía muestran datos de ejemplo. */
+.aviso-prototipo {
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.fila-stock-bajo td {
+  background: #fee2e2 !important;
+}

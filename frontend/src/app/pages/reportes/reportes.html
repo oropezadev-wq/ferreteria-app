@@ -1,0 +1,39 @@
+<h1 class="h4 mb-3">Reportes</h1>
+<div class="aviso-prototipo">Pantalla de prototipo con cifras de ejemplo.</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-sm-4"><div class="tarjeta"><div class="text-muted small">Ventas del mes</div><div class="fs-4 fw-bold">{{ ventasMes | currency: 'PEN' : 'S/ ' }}</div></div></div>
+  <div class="col-sm-4"><div class="tarjeta"><div class="text-muted small">Costo de lo vendido</div><div class="fs-4 fw-bold">{{ costoMes | currency: 'PEN' : 'S/ ' }}</div></div></div>
+  <div class="col-sm-4"><div class="tarjeta"><div class="text-muted small">Utilidad bruta</div><div class="fs-4 fw-bold text-success">{{ ventasMes - costoMes | currency: 'PEN' : 'S/ ' }}</div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="tarjeta h-100">
+      <h2 class="h6 mb-3">Ventas de la semana</h2>
+      @for (v of ventasSemana; track v.dia) {
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="small" style="width: 2.5rem">{{ v.dia }}</span>
+          <div class="progress flex-grow-1" style="height: 1.25rem">
+            <div class="progress-bar" style="background: var(--color-marca)" [style.width.%]="(v.monto / maximo) * 100"></div>
+          </div>
+          <span class="small text-end" style="width: 5.5rem">{{ v.monto | currency: 'PEN' : 'S/ ' : '1.0-0' }}</span>
+        </div>
+      }
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="tarjeta mb-3">
+      <h2 class="h6">Mayor rotación</h2>
+      @for (f of mayorRotacion; track f.producto) {
+        <div class="d-flex justify-content-between small border-bottom py-1"><span>{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
+      }
+    </div>
+    <div class="tarjeta">
+      <h2 class="h6">Menor rotación</h2>
+      @for (f of menorRotacion; track f.producto) {
+        <div class="d-flex justify-content-between small border-bottom py-1"><span>{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
+      }
+    </div>
+  </div>
+</div>

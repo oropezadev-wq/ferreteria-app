@@ -1,0 +1,42 @@
+<h1 class="h4 mb-3">Clientes</h1>
+<div class="aviso-prototipo">Pantalla de prototipo con datos de ejemplo (no se guardan).</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <form class="tarjeta" (ngSubmit)="agregar()">
+      <h2 class="h6 mb-3">Registrar cliente</h2>
+      @if (error()) {
+        <div class="alert alert-danger py-2 small">{{ error() }}</div>
+      }
+      <div class="mb-2">
+        <label class="form-label" for="doc">DNI o RUC</label>
+        <input id="doc" class="form-control" name="documento" [(ngModel)]="nuevo.documento" maxlength="11">
+      </div>
+      <div class="mb-2">
+        <label class="form-label" for="nombre">Nombre o razón social</label>
+        <input id="nombre" class="form-control" name="nombre" [(ngModel)]="nuevo.nombre">
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="tel">Teléfono</label>
+        <input id="tel" class="form-control" name="telefono" [(ngModel)]="nuevo.telefono">
+      </div>
+      <button class="btn btn-marca" type="submit">Guardar</button>
+    </form>
+  </div>
+  <div class="col-lg-8">
+    <div class="tarjeta">
+      <input class="form-control mb-3" placeholder="Buscar por DNI, RUC o nombre"
+             [ngModel]="filtro()" (ngModelChange)="filtro.set($event)">
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Documento</th><th>Nombre</th><th>Teléfono</th></tr></thead>
+          <tbody>
+            @for (c of filtrados(); track c.documento) {
+              <tr><td>{{ c.documento }}</td><td>{{ c.nombre }}</td><td>{{ c.telefono }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

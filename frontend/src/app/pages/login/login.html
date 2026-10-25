@@ -1,0 +1,32 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center p-3" style="background: var(--color-lateral)">
+  <form class="tarjeta w-100" style="max-width: 380px" [formGroup]="form" (ngSubmit)="ingresar()">
+    <div class="text-center mb-4">
+      <i class="bi bi-tools fs-1" style="color: var(--color-marca)"></i>
+      <h1 class="h4 mt-2 mb-0">Ferretería</h1>
+      <p class="text-muted small">Sistema de ventas e inventario</p>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-danger py-2">{{ error() }}</div>
+    }
+
+    <div class="mb-3">
+      <label for="usuario" class="form-label">Usuario</label>
+      <input id="usuario" class="form-control" formControlName="usuario" autocomplete="username"
+             [class.is-invalid]="form.controls.usuario.touched && form.controls.usuario.invalid">
+      <div class="invalid-feedback">Ingrese su usuario.</div>
+    </div>
+    <div class="mb-3">
+      <label for="clave" class="form-label">Contraseña</label>
+      <input id="clave" type="password" class="form-control" formControlName="clave" autocomplete="current-password"
+             [class.is-invalid]="form.controls.clave.touched && form.controls.clave.invalid">
+      <div class="invalid-feedback">Ingrese su contraseña.</div>
+    </div>
+    <button class="btn btn-marca w-100" type="submit">Ingresar</button>
+
+    <p class="text-muted small mt-3 mb-0">
+      Prototipo: <strong>admin / admin123</strong> (administrador) o
+      <strong>vendedor / vendedor123</strong> (vendedor).
+    </p>
+  </form>
+</div>

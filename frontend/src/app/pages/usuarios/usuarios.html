@@ -1,0 +1,28 @@
+<div class="d-flex align-items-center mb-3">
+  <h1 class="h4 mb-0 me-auto">Usuarios</h1>
+  <button class="btn btn-marca" disabled><i class="bi bi-person-plus"></i> Nuevo usuario</button>
+</div>
+<div class="aviso-prototipo">
+  Pantalla de prototipo. En la versión final las contraseñas se guardan cifradas (BCrypt) y el acceso usa JWT.
+</div>
+
+<div class="tarjeta">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+      <tbody>
+        @for (u of usuarios(); track u.usuario) {
+          <tr [class.text-muted]="!u.activo">
+            <td>{{ u.nombre }}</td>
+            <td>{{ u.usuario }}</td>
+            <td>{{ u.rol }}</td>
+            <td><span class="badge" [class.text-bg-success]="u.activo" [class.text-bg-secondary]="!u.activo">{{ u.activo ? 'Activo' : 'Inactivo' }}</span></td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-secondary" (click)="alternar(u)">{{ u.activo ? 'Desactivar' : 'Activar' }}</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

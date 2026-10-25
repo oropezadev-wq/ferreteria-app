@@ -1,0 +1,114 @@
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <h1 class="h4 mb-0 me-auto">Productos</h1>
+  <button class="btn btn-marca" (click)="nuevo()"><i class="bi bi-plus-lg"></i> Nuevo producto</button>
+</div>
+
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set('')" aria-label="Cerrar"></button>
+  </div>
+}
+@if (exito()) {
+  <div class="alert alert-success py-2">{{ exito() }}</div>
+}
+
+@if (formularioVisible()) {
+  <form class="tarjeta mb-3" [formGroup]="form" (ngSubmit)="guardar()">
+    <h2 class="h6 mb-3">{{ editandoId() ? 'Editar producto' : 'Nuevo producto' }}</h2>
+    <div class="row g-3">
+      <div class="col-sm-4 col-lg-2">
+        <label class="form-label" for="codigo">Código</label>
+        <input id="codigo" class="form-control" formControlName="codigo" [class.is-invalid]="invalido('codigo')">
+        <div class="invalid-feedback">Obligatorio (máx. 30).</div>
+      </div>
+      <div class="col-sm-8 col-lg-5">
+        <label class="form-label" for="descripcion">Descripción</label>
+        <input id="descripcion" class="form-control" formControlName="descripcion" [class.is-invalid]="invalido('descripcion')">
+        <div class="invalid-feedback">Obligatoria (máx. 120).</div>
+      </div>
+      <div class="col-lg-5">
+        <label class="form-label" for="categoria">Categoría</label>
+        <div class="input-group">
+          <select id="categoria" class="form-select" formControlName="categoriaId" [class.is-invalid]="invalido('categoriaId')">
+            <option [ngValue]="null" disabled>Seleccione…</option>
+            @for (c of categorias(); track c.id) {
+              <option [ngValue]="c.id">{{ c.nombre }}</option>
+            }
+          </select>
+          <input class="form-control" placeholder="Nueva categoría" [(ngModel)]="nuevaCategoria"
+                 [ngModelOptions]="{ standalone: true }">
+          <button class="btn btn-outline-secondary" type="button" (click)="agregarCategoria()" title="Agregar categoría">
+            <i class="bi bi-plus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <label class="form-label" for="compra">Precio compra (S/)</label>
+        <input id="compra" type="number" step="0.01" class="form-control" formControlName="precioCompra"
+               [class.is-invalid]="invalido('precioCompra')">
+        <div class="invalid-feedback">Mayor o igual a 0.</div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <label class="form-label" for="venta">Precio venta (S/)</label>
+        <input id="venta" type="number" step="0.01" class="form-control" formControlName="precioVenta"
+               [class.is-invalid]="invalido('precioVenta')">
+        <div class="invalid-feedback">Mayor que 0.</div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <label class="form-label" for="minimo">Stock mínimo</label>
+        <input id="minimo" type="number" class="form-control" formControlName="stockMinimo"
+               [class.is-invalid]="invalido('stockMinimo')">
+        <div class="invalid-feedback">Mayor o igual a 0.</div>
+      </div>
+      <div class="col-12 col-lg-6 d-flex align-items-end gap-2">
+        <button class="btn btn-marca" type="submit">Guardar</button>
+        <button class="btn btn-outline-secondary" type="button" (click)="formularioVisible.set(false)">Cancelar</button>
+        <span class="text-muted small ms-2">El stock se modifica desde Inventario.</span>
+      </div>
+    </div>
+  </form>
+}
+
+<div class="tarjeta">
+  <form class="input-group mb-3" (ngSubmit)="buscar()">
+    <input class="form-control" placeholder="Buscar por código o descripción" name="texto" [(ngModel)]="texto">
+    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i> Buscar</button>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Código</th><th>Descripción</th><th>Categoría</th>
+          <th class="text-end">P. venta</th><th class="text-end">Stock</th><th>Estado</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of productos(); track p.id) {
+          <tr [class.fila-stock-bajo]="p.stockBajo && p.activo" [class.text-muted]="!p.activo">
+            <td>{{ p.codigo }}</td>
+            <td>{{ p.descripcion }}</td>
+            <td>{{ p.categoriaNombre }}</td>
+            <td class="text-end">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
+            <td class="text-end fw-semibold">{{ p.stock }} <span class="text-muted fw-normal small">/ mín. {{ p.stockMinimo }}</span></td>
+            <td>
+              <span class="badge" [class.text-bg-success]="p.activo" [class.text-bg-secondary]="!p.activo">
+                {{ p.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="text-end text-nowrap">
+              <button class="btn btn-sm btn-outline-primary me-1" (click)="editar(p)" title="Editar"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm" [class.btn-outline-danger]="p.activo" [class.btn-outline-success]="!p.activo"
+                      (click)="cambiarEstado(p)" [title]="p.activo ? 'Desactivar' : 'Activar'">
+                <i class="bi" [class.bi-slash-circle]="p.activo" [class.bi-check-circle]="!p.activo"></i>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="text-center text-muted py-4">No se encontraron productos.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

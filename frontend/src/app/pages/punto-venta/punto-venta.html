@@ -1,0 +1,83 @@
+<h1 class="h4 mb-3">Punto de venta</h1>
+<div class="aviso-prototipo">
+  La búsqueda de productos usa datos reales de la API. El cobro todavía no registra la venta.
+</div>
+
+@if (error()) {
+  <div class="alert alert-danger py-2">{{ error() }}</div>
+}
+@if (mensaje()) {
+  <div class="alert alert-info py-2">{{ mensaje() }}</div>
+}
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="tarjeta mb-3">
+      <form class="input-group" (ngSubmit)="buscar()">
+        <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+        <input class="form-control form-control-lg" placeholder="Código o descripción del producto"
+               name="texto" [(ngModel)]="texto" autofocus>
+        <button class="btn btn-marca" type="submit">Buscar</button>
+      </form>
+      @if (resultados().length > 1) {
+        <div class="list-group mt-2">
+          @for (p of resultados(); track p.id) {
+            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between"
+                    (click)="agregar(p)" [disabled]="p.stock === 0">
+              <span>{{ p.codigo }} · {{ p.descripcion }}</span>
+              <span>{{ p.precioVenta | currency: 'PEN' : 'S/ ' }} <small class="text-muted">(stock {{ p.stock }})</small></span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="tarjeta">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Producto</th><th style="width: 110px">Cant.</th><th class="text-end">P. unit.</th><th class="text-end">Importe</th><th></th></tr></thead>
+          <tbody>
+            @for (l of lineas(); track l.producto.id) {
+              <tr>
+                <td>{{ l.producto.descripcion }}<div class="small text-muted">{{ l.producto.codigo }}</div></td>
+                <td>
+                  <input type="number" min="1" [max]="l.producto.stock" class="form-control form-control-sm"
+                         [ngModel]="l.cantidad" (ngModelChange)="cambiarCantidad(l, $event)">
+                </td>
+                <td class="text-end">{{ l.producto.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
+                <td class="text-end fw-semibold">{{ l.producto.precioVenta * l.cantidad | currency: 'PEN' : 'S/ ' }}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-danger" (click)="quitar(l)" title="Quitar"><i class="bi bi-trash"></i></button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="text-center text-muted py-4">Busque un producto para empezar la venta.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="tarjeta">
+      <div class="mb-3">
+        <label class="form-label" for="cliente">Cliente (opcional)</label>
+        <input id="cliente" class="form-control" placeholder="DNI o RUC">
+      </div>
+      <div class="d-flex justify-content-between"><span>Op. gravada</span><span>{{ gravada() | currency: 'PEN' : 'S/ ' }}</span></div>
+      <div class="d-flex justify-content-between"><span>IGV (18 %)</span><span>{{ igv() | currency: 'PEN' : 'S/ ' }}</span></div>
+      <hr>
+      <div class="d-flex justify-content-between fs-4 fw-bold mb-3"><span>Total</span><span>{{ total() | currency: 'PEN' : 'S/ ' }}</span></div>
+      <label class="form-label" for="metodo">Método de pago</label>
+      <select id="metodo" class="form-select mb-3" [(ngModel)]="metodoPago">
+        <option value="EFECTIVO">Efectivo</option>
+        <option value="TARJETA">Tarjeta</option>
+        <option value="YAPE">Yape / Plin</option>
+      </select>
+      <button class="btn btn-marca btn-lg w-100" [disabled]="lineas().length === 0" (click)="cobrar()">
+        <i class="bi bi-check2-circle"></i> Cobrar
+      </button>
+    </div>
+  </div>
+</div>

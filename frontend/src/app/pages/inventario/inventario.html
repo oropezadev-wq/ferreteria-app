@@ -1,0 +1,112 @@
+<h1 class="h4 mb-3">Inventario y kardex</h1>
+
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set('')" aria-label="Cerrar"></button>
+  </div>
+}
+@if (exito()) {
+  <div class="alert alert-success py-2">{{ exito() }}</div>
+}
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-7">
+    <form class="tarjeta h-100" [formGroup]="form" (ngSubmit)="registrar()">
+      <h2 class="h6 mb-3">Registrar movimiento</h2>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label" for="producto">Producto</label>
+          <select id="producto" class="form-select" formControlName="productoId" [class.is-invalid]="invalido('productoId')">
+            <option [ngValue]="null" disabled>Seleccione…</option>
+            @for (p of productos(); track p.id) {
+              <option [ngValue]="p.id">{{ p.codigo }} · {{ p.descripcion }} (stock {{ p.stock }})</option>
+            }
+          </select>
+          <div class="invalid-feedback">Seleccione un producto.</div>
+        </div>
+        <div class="col-sm-6">
+          <span class="form-label d-block">Tipo</span>
+          <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" id="t-entrada" value="ENTRADA" formControlName="tipo">
+            <label class="btn btn-outline-success" for="t-entrada">Entrada</label>
+            <input type="radio" class="btn-check" id="t-salida" value="SALIDA" formControlName="tipo">
+            <label class="btn btn-outline-danger" for="t-salida">Salida</label>
+            <input type="radio" class="btn-check" id="t-ajuste" value="AJUSTE" formControlName="tipo">
+            <label class="btn btn-outline-primary" for="t-ajuste">Ajuste</label>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label" for="cantidad">{{ etiquetaCantidad() }}</label>
+          <input id="cantidad" type="number" min="0" class="form-control" formControlName="cantidad"
+                 [class.is-invalid]="invalido('cantidad')">
+          <div class="invalid-feedback">Ingrese una cantidad válida.</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="motivo">Motivo</label>
+          <input id="motivo" class="form-control" formControlName="motivo" placeholder="Ej.: Compra a proveedor, factura F001-245"
+                 [class.is-invalid]="invalido('motivo')">
+          <div class="invalid-feedback">Indique el motivo.</div>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-marca" type="submit">Registrar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="col-lg-5">
+    <div class="tarjeta h-100">
+      <h2 class="h6"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Alertas de stock mínimo</h2>
+      @for (p of stockBajo(); track p.id) {
+        <div class="d-flex justify-content-between border-bottom py-1 small">
+          <span>{{ p.codigo }} · {{ p.descripcion }}</span>
+          <span class="text-danger fw-bold">{{ p.stock }} / {{ p.stockMinimo }}</span>
+        </div>
+      } @empty {
+        <p class="text-muted mb-0">Todo el stock está sobre el mínimo.</p>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="tarjeta">
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <h2 class="h6 mb-0 me-auto">Kardex</h2>
+    <select class="form-select form-select-sm w-auto" [(ngModel)]="filtroProducto" (ngModelChange)="cargarKardex()">
+      <option [ngValue]="null">Últimos 50 movimientos</option>
+      @for (p of productos(); track p.id) {
+        <option [ngValue]="p.id">{{ p.codigo }} · {{ p.descripcion }}</option>
+      }
+    </select>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead>
+        <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th class="text-end">Cantidad</th>
+          <th class="text-end">Stock anterior</th><th class="text-end">Stock final</th><th>Motivo</th></tr>
+      </thead>
+      <tbody>
+        @for (m of movimientos(); track m.id) {
+          <tr>
+            <td class="text-nowrap">{{ m.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ m.productoCodigo }} · {{ m.productoDescripcion }}</td>
+            <td>
+              <span class="badge"
+                    [class.text-bg-success]="m.tipo === 'ENTRADA'"
+                    [class.text-bg-danger]="m.tipo === 'SALIDA'"
+                    [class.text-bg-primary]="m.tipo === 'AJUSTE'">{{ m.tipo }}</span>
+            </td>
+            <td class="text-end fw-semibold" [class.text-success]="m.cantidad > 0" [class.text-danger]="m.cantidad < 0">
+              {{ m.cantidad > 0 ? '+' : '' }}{{ m.cantidad }}
+            </td>
+            <td class="text-end">{{ m.stockAnterior }}</td>
+            <td class="text-end">{{ m.stockResultante }}</td>
+            <td>{{ m.motivo }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="text-center text-muted py-4">Sin movimientos.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
