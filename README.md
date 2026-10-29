@@ -15,11 +15,11 @@ Vista (Angular + Bootstrap)  ──HTTP/JSON──▶  Negocio (Spring Boot, API
 | Panel principal | Indicadores y alertas de stock **reales** desde la API |
 | Productos y categorías | **Funcional**: listar, buscar, crear, editar, activar/desactivar |
 | Inventario y kardex | **Funcional**: entradas, salidas y ajustes; kardex y alertas de stock mínimo |
-| Punto de venta | Búsqueda de productos **real**; carrito y cálculo de IGV en la vista; el cobro aún no se guarda |
+| Ventas | Búsqueda de productos **real**; carrito, IGV y elección de boleta o factura (con validación de DNI o RUC) en la vista; la venta y el comprobante aún no se guardan |
 | Clientes, Caja, Reportes, Usuarios | Pantallas con datos de ejemplo |
 
 Usuarios de demostración: `admin / admin123` (administrador) y `vendedor / vendedor123` (vendedor).
-El vendedor solo ve Panel, Punto de venta, Clientes y Caja.
+El vendedor solo ve Panel, Ventas, Clientes y Caja.
 
 ## Cómo correrlo
 
@@ -102,6 +102,6 @@ mvnw test
 
 ## Pendiente para las siguientes iteraciones
 
-- Registro de ventas y nota de venta (CU08), caja (CU10, CU11), clientes y reportes con datos reales.
+- Registro de ventas con boleta o factura electrónica enviada a SUNAT mediante un proveedor autorizado (CU08), caja (CU10, CU11), clientes y reportes con datos reales.
 - Inicio de sesión en el backend con Spring Security, contraseñas con BCrypt y token JWT.
 - Cambiar H2 por PostgreSQL (solo cambia `application.properties` y la dependencia del driver).

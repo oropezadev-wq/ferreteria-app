@@ -7,7 +7,7 @@ import { Inventario } from './pages/inventario/inventario';
 import { Login } from './pages/login/login';
 import { Panel } from './pages/panel/panel';
 import { Productos } from './pages/productos/productos';
-import { PuntoVenta } from './pages/punto-venta/punto-venta';
+import { Ventas } from './pages/ventas/ventas';
 import { Reportes } from './pages/reportes/reportes';
 import { Usuarios } from './pages/usuarios/usuarios';
 import { authGuard } from './services/auth.guard';
@@ -24,7 +24,7 @@ export const routes: Routes = [
     canActivateChild: [authGuard],
     children: [
       { path: 'panel', component: Panel },
-      { path: 'punto-venta', component: PuntoVenta, data: VENDEDOR },
+      { path: 'ventas', component: Ventas, data: VENDEDOR },
       { path: 'clientes', component: Clientes, data: VENDEDOR },
       { path: 'caja', component: Caja, data: VENDEDOR },
       { path: 'productos', component: Productos, data: ADMIN },

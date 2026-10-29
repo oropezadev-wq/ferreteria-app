@@ -13,7 +13,7 @@ interface OpcionMenu {
 
 const MENU: OpcionMenu[] = [
   { ruta: '/panel', texto: 'Panel principal', icono: 'bi-speedometer2', roles: ['ADMINISTRADOR', 'VENDEDOR'] },
-  { ruta: '/punto-venta', texto: 'Punto de venta', icono: 'bi-cart3', roles: ['ADMINISTRADOR', 'VENDEDOR'] },
+  { ruta: '/ventas', texto: 'Ventas', icono: 'bi-cart3', roles: ['ADMINISTRADOR', 'VENDEDOR'] },
   { ruta: '/clientes', texto: 'Clientes', icono: 'bi-people', roles: ['ADMINISTRADOR', 'VENDEDOR'] },
   { ruta: '/caja', texto: 'Caja', icono: 'bi-cash-coin', roles: ['ADMINISTRADOR', 'VENDEDOR'] },
   { ruta: '/productos', texto: 'Productos', icono: 'bi-box-seam', roles: ['ADMINISTRADOR'] },
