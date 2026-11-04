@@ -1,6 +1,6 @@
-<h1 class="h4 mb-3">Punto de venta</h1>
+<h1 class="h4 mb-3">Ventas</h1>
 <div class="aviso-prototipo">
-  La búsqueda de productos usa datos reales de la API. El cobro todavía no registra la venta.
+  La búsqueda de productos usa datos reales de la API. El cobro todavía no registra la venta ni emite el comprobante.
 </div>
 
 @if (error()) {
@@ -62,8 +62,25 @@
   <div class="col-lg-4">
     <div class="tarjeta">
       <div class="mb-3">
-        <label class="form-label" for="cliente">Cliente (opcional)</label>
-        <input id="cliente" class="form-control" placeholder="DNI o RUC">
+        <span class="form-label d-block">Comprobante</span>
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" id="boleta" name="tipoComprobante" value="BOLETA" [(ngModel)]="tipoComprobante">
+          <label class="btn btn-outline-secondary" for="boleta">Boleta</label>
+          <input type="radio" class="btn-check" id="factura" name="tipoComprobante" value="FACTURA" [(ngModel)]="tipoComprobante">
+          <label class="btn btn-outline-secondary" for="factura">Factura</label>
+        </div>
+      </div>
+      <div class="mb-3">
+        @if (tipoComprobante === 'FACTURA') {
+          <label class="form-label" for="documento">RUC del cliente</label>
+          <input id="documento" class="form-control mb-2" placeholder="11 dígitos" maxlength="11" [(ngModel)]="documento">
+          <label class="form-label" for="razon">Razón social</label>
+          <input id="razon" class="form-control" [(ngModel)]="razonSocial">
+        } @else {
+          <label class="form-label" for="documento">DNI del cliente (opcional)</label>
+          <input id="documento" class="form-control" placeholder="8 dígitos" maxlength="8" [(ngModel)]="documento">
+          <div class="form-text">Obligatorio si la boleta supera S/ 700.</div>
+        }
       </div>
       <div class="d-flex justify-content-between"><span>Op. gravada</span><span>{{ gravada() | currency: 'PEN' : 'S/ ' }}</span></div>
       <div class="d-flex justify-content-between"><span>IGV (18 %)</span><span>{{ igv() | currency: 'PEN' : 'S/ ' }}</span></div>

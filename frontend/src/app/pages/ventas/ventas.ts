@@ -11,17 +11,24 @@ interface LineaVenta {
 }
 
 const TASA_IGV = 0.18;
+// SUNAT exige identificar al cliente en boletas que superan este monto.
+const TOPE_BOLETA_SIN_DNI = 700;
+
+type TipoComprobante = 'BOLETA' | 'FACTURA';
 
 @Component({
-  selector: 'app-punto-venta',
+  selector: 'app-ventas',
   imports: [CurrencyPipe, FormsModule],
-  templateUrl: './punto-venta.html',
+  templateUrl: './ventas.html',
 })
-export class PuntoVenta {
+export class Ventas {
   private readonly api = inject(ApiService);
 
   protected texto = '';
   protected metodoPago = 'EFECTIVO';
+  protected tipoComprobante: TipoComprobante = 'BOLETA';
+  protected documento = '';
+  protected razonSocial = '';
   protected readonly resultados = signal<Producto[]>([]);
   protected readonly lineas = signal<LineaVenta[]>([]);
   protected readonly mensaje = signal('');
@@ -75,10 +82,39 @@ export class PuntoVenta {
     this.lineas.update((ls) => ls.filter((l) => l !== linea));
   }
 
+  /** Reglas del comprobante: factura con RUC y razón social; boleta con DNI si supera el tope. */
+  private validarComprobante(): string {
+    const doc = this.documento.trim();
+    if (this.tipoComprobante === 'FACTURA') {
+      if (!/^(10|20)\d{9}$/.test(doc)) {
+        return 'La factura necesita un RUC válido de 11 dígitos (empieza con 10 o 20).';
+      }
+      if (!this.razonSocial.trim()) {
+        return 'La factura necesita la razón social del cliente.';
+      }
+      return '';
+    }
+    if (doc && !/^\d{8}$/.test(doc)) {
+      return 'El DNI debe tener 8 dígitos.';
+    }
+    if (!doc && this.total() > TOPE_BOLETA_SIN_DNI) {
+      return `Para una boleta de más de S/ ${TOPE_BOLETA_SIN_DNI} se debe ingresar el DNI del cliente.`;
+    }
+    return '';
+  }
+
   cobrar(): void {
+    const problema = this.validarComprobante();
+    if (problema) {
+      this.mensaje.set('');
+      this.error.set(problema);
+      return;
+    }
+    this.error.set('');
+    const nombre = this.tipoComprobante === 'FACTURA' ? 'la factura' : 'la boleta';
     this.mensaje.set(
-      'Prototipo: la venta se calculó correctamente. El registro de la venta y la nota de venta ' +
-        'se implementan en la siguiente iteración (CU08).',
+      `Prototipo: la venta y los datos de ${nombre} son correctos. El registro de la venta y el envío ` +
+        'del comprobante a SUNAT se implementan en la siguiente iteración (CU08).',
     );
   }
 }
