@@ -1,11 +1,25 @@
-# Ferretería: prototipo funcional
+# Sistema web de ventas en mostrador e inventario para una ferretería
 
-Prototipo del sistema de ventas e inventario para una ferretería, con arquitectura en tres capas:
+Prototipo de un sistema de uso interno para una ferretería: el vendedor registra las ventas en el
+mostrador con boleta o factura, y el administrador controla los productos, el stock y el kardex.
+El cliente de la ferretería no usa el sistema. Proyecto académico del curso *Proyecto Integración de
+los Componentes de las Capas de Datos, Negocio y Vista* (IDAT).
+
+Arquitectura en tres capas que aplica el patrón MVC:
 
 ```
 Vista (Angular + Bootstrap)  ──HTTP/JSON──▶  Negocio (Spring Boot, API REST)  ──JPA──▶  Datos (H2 / PostgreSQL)
    frontend/  puerto 4200                        backend/  puerto 8081
 ```
+
+![Arquitectura en tres capas](docs/arquitectura.png)
+
+## Tecnologías
+
+- **Vista:** Angular, TypeScript y Bootstrap.
+- **Negocio:** Java 21 y Spring Boot (Web, Data JPA y Validation).
+- **Datos:** H2 en el prototipo; PostgreSQL en el sistema final.
+- **Pruebas:** JUnit con Spring Boot Test.
 
 ## Qué funciona y qué es de ejemplo
 
@@ -102,6 +116,10 @@ mvnw test
 
 ## Pendiente para las siguientes iteraciones
 
-- Registro de ventas con boleta o factura electrónica enviada a SUNAT mediante un proveedor autorizado (CU08), caja (CU10, CU11), clientes y reportes con datos reales.
+- Registro de ventas con boleta o factura electrónica enviada a SUNAT mediante un Proveedor de Servicios Electrónicos (PSE) (CU08), caja (CU10, CU11), clientes y reportes con datos reales.
 - Inicio de sesión en el backend con Spring Security, contraseñas con BCrypt y token JWT.
 - Cambiar H2 por PostgreSQL (solo cambia `application.properties` y la dependencia del driver).
+
+## Licencia
+
+MIT. Ver [LICENSE](LICENSE).
