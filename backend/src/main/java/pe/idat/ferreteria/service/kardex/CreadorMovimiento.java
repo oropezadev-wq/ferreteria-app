@@ -1,6 +1,7 @@
 package pe.idat.ferreteria.service.kardex;
 
 import pe.idat.ferreteria.exception.ReglaNegocioException;
+import pe.idat.ferreteria.model.DocumentoIngreso;
 import pe.idat.ferreteria.model.MovimientoKardex;
 import pe.idat.ferreteria.model.Producto;
 import pe.idat.ferreteria.model.TipoMovimiento;
@@ -21,11 +22,23 @@ public abstract class CreadorMovimiento {
     /** El método fábrica: cada subclase crea su propio movimiento. */
     protected abstract MovimientoKardex crearMovimiento(Producto producto, int cantidad, String motivo);
 
-    public MovimientoKardex registrar(Producto producto, int cantidad, String motivo) {
+    /** Si el movimiento debe llevar el documento del proveedor. Por defecto, no. */
+    protected boolean exigeDocumento() {
+        return false;
+    }
+
+    public MovimientoKardex registrar(Producto producto, int cantidad, String motivo, DocumentoIngreso documento) {
+        if (exigeDocumento() && (documento == null || !documento.estaCompleto())) {
+            throw new ReglaNegocioException("La entrada necesita el documento del proveedor: "
+                    + "tipo, número, fecha y proveedor");
+        }
         MovimientoKardex movimiento = crearMovimiento(producto, cantidad, motivo);
         if (movimiento.getStockResultante() < 0) {
             throw new ReglaNegocioException("Stock insuficiente: hay " + producto.getStock()
                     + " unidades de " + producto.getDescripcion());
+        }
+        if (exigeDocumento()) {
+            movimiento.asignarDocumento(documento);
         }
         producto.setStock(movimiento.getStockResultante());
         return movimiento;

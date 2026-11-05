@@ -27,8 +27,9 @@ public class KardexController {
     }
 
     @GetMapping
-    public List<MovimientoResponse> listar(@RequestParam(required = false) Long productoId) {
-        return kardexService.listar(productoId);
+    public List<MovimientoResponse> listar(@RequestParam(required = false) Long productoId,
+                                           @RequestParam(required = false) String documento) {
+        return kardexService.listar(productoId, documento);
     }
 
     @PostMapping

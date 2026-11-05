@@ -28,7 +28,7 @@ Vista (Angular + Bootstrap)  ──HTTP/JSON──▶  Negocio (Spring Boot, API
 | Inicio de sesión | Funciona con dos usuarios de demostración (sin backend todavía) |
 | Panel principal | Indicadores y alertas de stock **reales** desde la API |
 | Productos y categorías | **Funcional**: listar, buscar, crear, editar, activar/desactivar |
-| Inventario y kardex | **Funcional**: entradas, salidas y ajustes; kardex y alertas de stock mínimo |
+| Inventario y kardex | **Funcional**: entradas con la guía o comprobante del proveedor, salidas y ajustes; kardex con búsqueda por documento y alertas de stock mínimo |
 | Ventas | Búsqueda de productos **real**; carrito, IGV y elección de boleta o factura (con validación de DNI o RUC) en la vista; la venta y el comprobante aún no se guardan |
 | Clientes, Caja, Reportes, Usuarios | Pantallas con datos de ejemplo |
 
@@ -99,8 +99,8 @@ Código: `backend/src/main/java/pe/idat/ferreteria/service/kardex/`
 | POST | `/api/productos` | Crear producto |
 | PUT | `/api/productos/{id}` | Editar producto (el stock no se edita aquí) |
 | PATCH | `/api/productos/{id}/activar` · `/desactivar` | Cambiar estado |
-| GET | `/api/movimientos?productoId=` | Kardex |
-| POST | `/api/movimientos` | Registrar entrada, salida o ajuste |
+| GET | `/api/movimientos?productoId=&documento=` | Kardex; con `documento`, lo que ingresó con esa guía o comprobante |
+| POST | `/api/movimientos` | Registrar entrada, salida o ajuste (la entrada exige el documento del proveedor) |
 
 ## Pruebas
 
@@ -109,10 +109,11 @@ cd backend
 mvnw test
 ```
 
-- `CreadorMovimientoTest`: 6 pruebas unitarias del Factory Method.
-- `ApiIntegracionTest`: 9 pruebas de integración que recorren controlador, servicio y
+- `CreadorMovimientoTest`: 7 pruebas unitarias del Factory Method.
+- `ApiIntegracionTest`: 12 pruebas de integración que recorren controlador, servicio y
   repositorio con una base en memoria (alta, búsqueda, kardex, stock insuficiente, código repetido,
-  datos inválidos, producto inexistente, producto desactivado y resumen del panel).
+  datos inválidos, producto inexistente, producto desactivado, entrada sin documento, formato del
+  número de documento, búsqueda por documento y resumen del panel).
 
 ## Pendiente para las siguientes iteraciones
 

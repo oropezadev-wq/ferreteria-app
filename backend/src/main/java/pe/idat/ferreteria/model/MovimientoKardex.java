@@ -1,5 +1,6 @@
 package pe.idat.ferreteria.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -45,6 +46,19 @@ public class MovimientoKardex {
     @Column(nullable = false)
     private LocalDateTime fecha;
 
+    /** Documento del proveedor; solo lo llevan las entradas. */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 15)
+    private TipoDocumento tipoDocumento;
+
+    @Column(length = 20)
+    private String numeroDocumento;
+
+    private LocalDate fechaDocumento;
+
+    @Column(length = 120)
+    private String proveedor;
+
     protected MovimientoKardex() {
     }
 
@@ -89,5 +103,28 @@ public class MovimientoKardex {
 
     public LocalDateTime getFecha() {
         return fecha;
+    }
+
+    public void asignarDocumento(DocumentoIngreso documento) {
+        this.tipoDocumento = documento.tipo();
+        this.numeroDocumento = documento.numero();
+        this.fechaDocumento = documento.fecha();
+        this.proveedor = documento.proveedor();
+    }
+
+    public TipoDocumento getTipoDocumento() {
+        return tipoDocumento;
+    }
+
+    public String getNumeroDocumento() {
+        return numeroDocumento;
+    }
+
+    public LocalDate getFechaDocumento() {
+        return fechaDocumento;
+    }
+
+    public String getProveedor() {
+        return proveedor;
     }
 }

@@ -68,6 +68,7 @@ public class DatosIniciales implements CommandLineRunner {
                           int stockMinimo, int stockInicial) {
         Long id = productoService.crear(new ProductoRequest(codigo, descripcion, categoriaId,
                 new BigDecimal(compra), new BigDecimal(venta), stockMinimo)).id();
-        kardexService.registrar(new MovimientoRequest(id, TipoMovimiento.ENTRADA, stockInicial, "Inventario inicial"));
+        kardexService.registrar(new MovimientoRequest(id, TipoMovimiento.AJUSTE, stockInicial, "Inventario inicial",
+                null, null, null, null));
     }
 }
