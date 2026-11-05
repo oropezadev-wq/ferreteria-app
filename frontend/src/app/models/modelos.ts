@@ -30,6 +30,8 @@ export interface ProductoRequest {
 
 export type TipoMovimiento = 'ENTRADA' | 'SALIDA' | 'AJUSTE';
 
+export type TipoDocumento = 'GUIA_REMISION' | 'FACTURA' | 'BOLETA';
+
 export interface Movimiento {
   id: number;
   productoId: number;
@@ -41,6 +43,10 @@ export interface Movimiento {
   stockResultante: number;
   motivo: string;
   fecha: string;
+  tipoDocumento: TipoDocumento | null;
+  numeroDocumento: string | null;
+  fechaDocumento: string | null;
+  proveedor: string | null;
 }
 
 export interface MovimientoRequest {
@@ -48,6 +54,10 @@ export interface MovimientoRequest {
   tipo: TipoMovimiento;
   cantidad: number;
   motivo: string;
+  tipoDocumento: TipoDocumento | null;
+  numeroDocumento: string | null;
+  fechaDocumento: string | null;
+  proveedor: string | null;
 }
 
 export interface Resumen {

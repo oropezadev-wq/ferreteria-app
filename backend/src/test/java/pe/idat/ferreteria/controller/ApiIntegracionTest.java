@@ -125,6 +125,41 @@ class ApiIntegracionTest {
     }
 
     @Test
+    void entradaSinDocumentoDevuelve409YNoCambiaElStock() throws Exception {
+        long producto = crearProducto("PI-004", "Rodillo 9\\\"", crearCategoria("Pinturas"), 2);
+
+        movimiento(producto, "ENTRADA", 5, "").andExpect(status().isConflict())
+                .andExpect(jsonPath("$.mensaje").value(org.hamcrest.Matchers.containsString("documento")));
+        mvc.perform(get("/api/productos/" + producto)).andExpect(jsonPath("$.stock").value(0));
+    }
+
+    @Test
+    void numeroDeDocumentoConFormatoInvalidoDevuelve400() throws Exception {
+        long producto = crearProducto("PI-005", "Espátula 3\\\"", crearCategoria("Pinturas"), 2);
+
+        movimiento(producto, "ENTRADA", 5, ",\"tipoDocumento\":\"FACTURA\",\"numeroDocumento\":\"factura 12\""
+                + ",\"fechaDocumento\":\"2026-11-03\",\"proveedor\":\"Proveedor Ejemplo\"")
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void elKardexSeBuscaPorNumeroDeDocumento() throws Exception {
+        long categoria = crearCategoria("Gasfitería");
+        long tubo = crearProducto("GA-003", "Codo PVC 1/2\\\"", categoria, 5);
+        long llave = crearProducto("GA-004", "Llave de paso 1/2\\\"", categoria, 2);
+        movimiento(tubo, "ENTRADA", 20);
+        movimiento(llave, "ENTRADA", 4);
+        movimiento(llave, "ENTRADA", 3, ",\"tipoDocumento\":\"FACTURA\",\"numeroDocumento\":\"F001-000777\""
+                + ",\"fechaDocumento\":\"2026-11-02\",\"proveedor\":\"Otro Proveedor SAC\"");
+
+        mvc.perform(get("/api/movimientos").param("documento", "t001-000123"))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].tipoDocumento").value("GUIA_REMISION"))
+                .andExpect(jsonPath("$[0].fechaDocumento").value("2026-11-03"))
+                .andExpect(jsonPath("$[0].proveedor").value("Distribuidora Ejemplo SAC"));
+    }
+
+    @Test
     void resumenDelPanel() throws Exception {
         long producto = crearProducto("PI-003", "Brocha 2\\\"", crearCategoria("Pinturas"), 5);
         movimiento(producto, "ENTRADA", 3);
@@ -152,9 +187,16 @@ class ApiIntegracionTest {
 
     private ResultActions movimiento(long producto, String tipo, int cantidad)
             throws Exception {
+        return movimiento(producto, tipo, cantidad, ",\"tipoDocumento\":\"GUIA_REMISION\""
+                + ",\"numeroDocumento\":\"T001-000123\",\"fechaDocumento\":\"2026-11-03\""
+                + ",\"proveedor\":\"Distribuidora Ejemplo SAC\"");
+    }
+
+    private ResultActions movimiento(long producto, String tipo, int cantidad, String documento)
+            throws Exception {
         return mvc.perform(post("/api/movimientos").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"productoId\":" + producto + ",\"tipo\":\"" + tipo + "\",\"cantidad\":" + cantidad
-                        + ",\"motivo\":\"Prueba\"}"));
+                        + ",\"motivo\":\"Prueba\"" + documento + "}"));
     }
 
     private static String productoJson(String codigo, String descripcion, long categoria, int stockMinimo) {

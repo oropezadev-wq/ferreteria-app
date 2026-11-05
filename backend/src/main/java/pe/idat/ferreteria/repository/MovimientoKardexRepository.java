@@ -13,5 +13,7 @@ public interface MovimientoKardexRepository extends JpaRepository<MovimientoKard
 
     List<MovimientoKardex> findTop50ByOrderByFechaDescIdDesc();
 
+    List<MovimientoKardex> findByNumeroDocumentoIgnoreCaseOrderByFechaDescIdDesc(String numeroDocumento);
+
     long countByFechaAfter(LocalDateTime desde);
 }

@@ -6,13 +6,18 @@ import pe.idat.ferreteria.model.MovimientoKardex;
 import pe.idat.ferreteria.model.Producto;
 import pe.idat.ferreteria.model.TipoMovimiento;
 
-/** Llega mercadería del proveedor: el stock sube. */
+/** Llega mercadería del proveedor: el stock sube y queda el documento con el que ingresó. */
 @Component
 public class CreadorEntrada extends CreadorMovimiento {
 
     @Override
     public TipoMovimiento tipo() {
         return TipoMovimiento.ENTRADA;
+    }
+
+    @Override
+    protected boolean exigeDocumento() {
+        return true;
     }
 
     @Override

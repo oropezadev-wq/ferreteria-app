@@ -52,10 +52,13 @@ export class ApiService {
     return this.http.patch<Producto>(`${API}/productos/${id}/${accion}`, null);
   }
 
-  movimientos(productoId?: number): Observable<Movimiento[]> {
+  movimientos(productoId?: number, documento?: string): Observable<Movimiento[]> {
     let params = new HttpParams();
     if (productoId) {
       params = params.set('productoId', productoId);
+    }
+    if (documento) {
+      params = params.set('documento', documento);
     }
     return this.http.get<Movimiento[]>(`${API}/movimientos`, { params });
   }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.idat.ferreteria.dto.MovimientoRequest;
 import pe.idat.ferreteria.dto.MovimientoResponse;
 import pe.idat.ferreteria.exception.ReglaNegocioException;
+import pe.idat.ferreteria.model.DocumentoIngreso;
 import pe.idat.ferreteria.model.MovimientoKardex;
 import pe.idat.ferreteria.model.Producto;
 import pe.idat.ferreteria.model.TipoMovimiento;
@@ -39,15 +40,28 @@ public class KardexService {
             throw new ReglaNegocioException("El producto " + producto.getCodigo() + " está desactivado");
         }
         CreadorMovimiento creador = creadores.get(request.tipo());
-        MovimientoKardex movimiento = creador.registrar(producto, request.cantidad(), request.motivo().trim());
+        DocumentoIngreso documento = new DocumentoIngreso(request.tipoDocumento(),
+                limpiar(request.numeroDocumento()), request.fechaDocumento(), limpiar(request.proveedor()));
+        MovimientoKardex movimiento = creador.registrar(producto, request.cantidad(), request.motivo().trim(),
+                documento);
         return MovimientoResponse.de(movimientoRepository.save(movimiento));
     }
 
+    /** Con número de documento, devuelve lo que ingresó con esa guía o comprobante. */
     @Transactional(readOnly = true)
-    public List<MovimientoResponse> listar(Long productoId) {
+    public List<MovimientoResponse> listar(Long productoId, String numeroDocumento) {
+        if (numeroDocumento != null && !numeroDocumento.isBlank()) {
+            return movimientoRepository
+                    .findByNumeroDocumentoIgnoreCaseOrderByFechaDescIdDesc(numeroDocumento.trim())
+                    .stream().map(MovimientoResponse::de).toList();
+        }
         List<MovimientoKardex> movimientos = productoId == null
                 ? movimientoRepository.findTop50ByOrderByFechaDescIdDesc()
                 : movimientoRepository.findByProductoIdOrderByFechaDescIdDesc(productoId);
         return movimientos.stream().map(MovimientoResponse::de).toList();
+    }
+
+    private static String limpiar(String texto) {
+        return texto == null || texto.isBlank() ? null : texto.trim();
     }
 }

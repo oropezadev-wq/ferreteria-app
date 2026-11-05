@@ -44,10 +44,41 @@
         </div>
         <div class="col-12">
           <label class="form-label" for="motivo">Motivo</label>
-          <input id="motivo" class="form-control" formControlName="motivo" placeholder="Ej.: Compra a proveedor, factura F001-245"
+          <input id="motivo" class="form-control" formControlName="motivo" placeholder="Ej.: Compra a proveedor"
                  [class.is-invalid]="invalido('motivo')">
           <div class="invalid-feedback">Indique el motivo.</div>
         </div>
+        @if (esEntrada()) {
+          <div class="col-sm-6">
+            <label class="form-label" for="tipoDocumento">Documento del proveedor</label>
+            <select id="tipoDocumento" class="form-select" formControlName="tipoDocumento"
+                    [class.is-invalid]="invalido('tipoDocumento')">
+              <option [ngValue]="null" disabled>Seleccione…</option>
+              <option value="GUIA_REMISION">Guía de remisión</option>
+              <option value="FACTURA">Factura</option>
+              <option value="BOLETA">Boleta</option>
+            </select>
+            <div class="invalid-feedback">Elija el tipo de documento.</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="numeroDocumento">Serie y número</label>
+            <input id="numeroDocumento" class="form-control text-uppercase" formControlName="numeroDocumento"
+                   placeholder="Ej.: T001-000123" [class.is-invalid]="invalido('numeroDocumento')">
+            <div class="invalid-feedback">Use el formato SERIE-NÚMERO, por ejemplo T001-000123.</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="fechaDocumento">Fecha del documento</label>
+            <input id="fechaDocumento" type="date" class="form-control" formControlName="fechaDocumento"
+                   [max]="hoy" [class.is-invalid]="invalido('fechaDocumento')">
+            <div class="invalid-feedback">Indique la fecha del documento.</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="proveedor">Proveedor</label>
+            <input id="proveedor" class="form-control" formControlName="proveedor"
+                   placeholder="Razón social o RUC" [class.is-invalid]="invalido('proveedor')">
+            <div class="invalid-feedback">Indique el proveedor.</div>
+          </div>
+        }
         <div class="col-12">
           <button class="btn btn-marca" type="submit">Registrar</button>
         </div>
@@ -72,6 +103,11 @@
 <div class="tarjeta">
   <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <h2 class="h6 mb-0 me-auto">Kardex</h2>
+    <input class="form-control form-control-sm w-auto" placeholder="N.° de guía o comprobante"
+           aria-label="Buscar por documento" [(ngModel)]="filtroDocumento" (keyup.enter)="cargarKardex()">
+    <button class="btn btn-sm btn-outline-secondary" type="button" (click)="cargarKardex()">
+      <i class="bi bi-search"></i> Buscar
+    </button>
     <select class="form-select form-select-sm w-auto" [(ngModel)]="filtroProducto" (ngModelChange)="cargarKardex()">
       <option [ngValue]="null">Últimos 50 movimientos</option>
       @for (p of productos(); track p.id) {
@@ -83,7 +119,7 @@
     <table class="table table-sm align-middle mb-0">
       <thead>
         <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th class="text-end">Cantidad</th>
-          <th class="text-end">Stock anterior</th><th class="text-end">Stock final</th><th>Motivo</th></tr>
+          <th class="text-end">Stock anterior</th><th class="text-end">Stock final</th><th>Motivo</th><th>Documento</th></tr>
       </thead>
       <tbody>
         @for (m of movimientos(); track m.id) {
@@ -102,9 +138,17 @@
             <td class="text-end">{{ m.stockAnterior }}</td>
             <td class="text-end">{{ m.stockResultante }}</td>
             <td>{{ m.motivo }}</td>
+            <td class="small">
+              @if (m.tipoDocumento && m.numeroDocumento) {
+                {{ nombreDocumento[m.tipoDocumento] }} {{ m.numeroDocumento }}
+                <div class="text-muted">{{ m.fechaDocumento | date: 'dd/MM/yyyy' }} · {{ m.proveedor }}</div>
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
           </tr>
         } @empty {
-          <tr><td colspan="7" class="text-center text-muted py-4">Sin movimientos.</td></tr>
+          <tr><td colspan="8" class="text-center text-muted py-4">Sin movimientos.</td></tr>
         }
       </tbody>
     </table>
