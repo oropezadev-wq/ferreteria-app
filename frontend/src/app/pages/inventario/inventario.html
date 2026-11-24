@@ -87,21 +87,21 @@
   </div>
   <div class="col-lg-5">
     <div class="tarjeta h-100">
-      <h2 class="h6"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Alertas de stock mínimo</h2>
+      <h2 class="h6 mb-3"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Alertas de stock mínimo</h2>
       @for (p of stockBajo(); track p.id) {
-        <div class="d-flex justify-content-between border-bottom py-1 small">
+        <div class="d-flex justify-content-between gap-2 border-bottom py-2 small">
           <span>{{ p.codigo }} · {{ p.descripcion }}</span>
-          <span class="text-danger fw-bold">{{ p.stock }} / {{ p.stockMinimo }}</span>
+          <span class="text-danger fw-bold text-nowrap">{{ p.stock }} / {{ p.stockMinimo }}</span>
         </div>
       } @empty {
-        <p class="text-muted mb-0">Todo el stock está sobre el mínimo.</p>
+        <p class="vacio mb-0"><i class="bi bi-check2-circle"></i>Todo el stock está sobre el mínimo.</p>
       }
     </div>
   </div>
 </div>
 
 <div class="tarjeta">
-  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <div class="filtros-kardex d-flex flex-wrap align-items-center gap-2 mb-3">
     <h2 class="h6 mb-0 me-auto">Kardex</h2>
     <input class="form-control form-control-sm w-auto" placeholder="N.° de guía o comprobante"
            aria-label="Buscar por documento" [(ngModel)]="filtroDocumento" (keyup.enter)="cargarKardex()">
@@ -125,7 +125,7 @@
         @for (m of movimientos(); track m.id) {
           <tr>
             <td class="text-nowrap">{{ m.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
-            <td>{{ m.productoCodigo }} · {{ m.productoDescripcion }}</td>
+            <td class="celda-producto">{{ m.productoCodigo }} · {{ m.productoDescripcion }}</td>
             <td>
               <span class="badge"
                     [class.text-bg-success]="m.tipo === 'ENTRADA'"
@@ -149,7 +149,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="8" class="text-center text-muted py-4">Sin movimientos.</td></tr>
+          <tr><td colspan="8" class="vacio"><i class="bi bi-clipboard"></i>Sin movimientos.</td></tr>
         }
       </tbody>
     </table>

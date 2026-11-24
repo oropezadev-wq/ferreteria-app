@@ -2,11 +2,11 @@
 
 <form class="tarjeta d-flex flex-wrap align-items-end gap-2 mb-3" (ngSubmit)="consultar()">
   <div>
-    <label class="form-label small" for="desde">Desde</label>
+    <label class="form-label small fw-semibold" for="desde">Desde</label>
     <input id="desde" type="date" class="form-control" name="desde" [(ngModel)]="desde">
   </div>
   <div>
-    <label class="form-label small" for="hasta">Hasta</label>
+    <label class="form-label small fw-semibold" for="hasta">Hasta</label>
     <input id="hasta" type="date" class="form-control" name="hasta" [(ngModel)]="hasta">
   </div>
   <button class="btn btn-marca" type="submit">Consultar</button>
@@ -21,10 +21,10 @@
 
 @if (reporte(); as r) {
   <div class="row g-3 mb-3">
-    <div class="col-sm-6 col-lg-3"><div class="tarjeta"><div class="text-muted small">Ventas ({{ r.cantidadVentas }})</div><div class="fs-4 fw-bold">{{ r.total | currency: 'PEN' : 'S/ ' }}</div></div></div>
-    <div class="col-sm-6 col-lg-3"><div class="tarjeta"><div class="text-muted small">Costo de lo vendido</div><div class="fs-4 fw-bold">{{ r.costo | currency: 'PEN' : 'S/ ' }}</div></div></div>
-    <div class="col-sm-6 col-lg-3"><div class="tarjeta"><div class="text-muted small">Utilidad bruta</div><div class="fs-4 fw-bold text-success">{{ r.utilidad | currency: 'PEN' : 'S/ ' }}</div></div></div>
-    <div class="col-sm-6 col-lg-3"><div class="tarjeta"><div class="text-muted small">Ventas anuladas</div><div class="fs-4 fw-bold text-danger">{{ r.cantidadAnuladas }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="tarjeta h-100"><div class="etiqueta">Ventas ({{ r.cantidadVentas }})</div><div class="cifra">{{ r.total | currency: 'PEN' : 'S/ ' }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="tarjeta h-100"><div class="etiqueta">Costo de lo vendido</div><div class="cifra">{{ r.costo | currency: 'PEN' : 'S/ ' }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="tarjeta h-100"><div class="etiqueta">Utilidad bruta</div><div class="cifra text-success">{{ r.utilidad | currency: 'PEN' : 'S/ ' }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="tarjeta h-100"><div class="etiqueta">Ventas anuladas</div><div class="cifra text-danger">{{ r.cantidadAnuladas }}</div></div></div>
   </div>
 
   <div class="row g-3 mb-3">
@@ -37,10 +37,10 @@
             <div class="progress flex-grow-1" style="height: 1.25rem">
               <div class="progress-bar" style="background: var(--color-marca)" [style.width.%]="(d.total / maximo()) * 100"></div>
             </div>
-            <span class="small text-end" style="width: 6rem">{{ d.total | currency: 'PEN' : 'S/ ' }}</span>
+            <span class="small text-end text-nowrap" style="width: 6rem">{{ d.total | currency: 'PEN' : 'S/ ' }}</span>
           </div>
         } @empty {
-          <p class="text-muted mb-0">No hay ventas en el periodo.</p>
+          <p class="vacio mb-0"><i class="bi bi-bar-chart"></i>No hay ventas en el periodo.</p>
         }
       </div>
     </div>
@@ -67,12 +67,12 @@
   <h2 class="h6 mb-3">Comprobantes emitidos</h2>
   <div class="table-responsive">
     <table class="table table-sm align-middle mb-0">
-      <thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Pago</th><th class="text-end">Total</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Pago</th><th class="text-end">Total</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
       <tbody>
         @for (v of ventas(); track v.id) {
           <tr [class.text-muted]="v.estado === 'ANULADA'">
-            <td>{{ v.fecha | date: 'dd/MM HH:mm' }}</td>
-            <td>{{ v.comprobante }}</td>
+            <td class="text-nowrap">{{ v.fecha | date: 'dd/MM HH:mm' }}</td>
+            <td class="text-nowrap fw-semibold">{{ v.comprobante }}</td>
             <td>{{ v.clienteNombre ?? 'Cliente varios' }}</td>
             <td>{{ v.metodoPago }}</td>
             <td class="text-end">{{ v.total | currency: 'PEN' : 'S/ ' }}</td>
@@ -90,7 +90,7 @@
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="7" class="text-center text-muted py-4">No hay comprobantes en el periodo.</td></tr>
+          <tr><td colspan="7" class="vacio"><i class="bi bi-receipt"></i>No hay comprobantes en el periodo.</td></tr>
         }
       </tbody>
     </table>

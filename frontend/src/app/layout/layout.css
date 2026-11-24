@@ -4,9 +4,19 @@
   background: var(--color-lateral);
 }
 
+.marca .bi {
+  color: #fb923c;
+}
+
+.marca-sub {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
 .nav-link {
   color: #d1d5db;
   border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
 }
 
 .nav-link:hover {
@@ -23,6 +33,20 @@
   min-width: 0;
 }
 
+/* La barra superior queda visible al bajar en pantallas largas (Ventas, Kardex). */
+.barra-superior {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  min-height: 3.5rem;
+}
+
+.btn-menu {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+}
+
 /* En tabletas y celulares el menú se oculta y se abre con el botón. */
 @media (max-width: 767.98px) {
   .lateral {
@@ -35,5 +59,23 @@
 
   .lateral.abierto {
     transform: none;
+  }
+
+  /* Oscurece el contenido detrás del menú; un toque fuera lo cierra. */
+  .fondo-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 1030;
+    background: rgb(17 24 39 / 50%);
+  }
+}
+
+/* En escritorio el menú acompaña al bajar por pantallas largas. */
+@media (min-width: 768px) {
+  .lateral {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
   }
 }

@@ -7,26 +7,26 @@
 <div class="row g-3 mb-4">
   <div class="col-6 col-lg-3">
     <div class="tarjeta h-100">
-      <div class="text-muted small">Productos activos</div>
-      <div class="fs-3 fw-bold">{{ resumen()?.productosActivos ?? '—' }}</div>
+      <div class="etiqueta">Productos activos</div>
+      <div class="cifra">{{ resumen()?.productosActivos ?? '—' }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="tarjeta tarjeta-alerta h-100">
+      <div class="etiqueta">Con stock bajo</div>
+      <div class="cifra text-danger">{{ resumen()?.productosStockBajo ?? '—' }}</div>
     </div>
   </div>
   <div class="col-6 col-lg-3">
     <div class="tarjeta h-100">
-      <div class="text-muted small">Con stock bajo</div>
-      <div class="fs-3 fw-bold text-danger">{{ resumen()?.productosStockBajo ?? '—' }}</div>
+      <div class="etiqueta">Valor del inventario</div>
+      <div class="cifra">{{ (resumen()?.valorInventario ?? 0) | currency: 'PEN' : 'S/ ' }}</div>
     </div>
   </div>
   <div class="col-6 col-lg-3">
     <div class="tarjeta h-100">
-      <div class="text-muted small">Valor del inventario</div>
-      <div class="fs-3 fw-bold">{{ (resumen()?.valorInventario ?? 0) | currency: 'PEN' : 'S/ ' }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta h-100">
-      <div class="text-muted small">Movimientos de hoy</div>
-      <div class="fs-3 fw-bold">{{ resumen()?.movimientosHoy ?? '—' }}</div>
+      <div class="etiqueta">Movimientos de hoy</div>
+      <div class="cifra">{{ resumen()?.movimientosHoy ?? '—' }}</div>
     </div>
   </div>
 </div>
@@ -34,9 +34,9 @@
 <div class="row g-3">
   <div class="col-lg-7">
     <div class="tarjeta">
-      <h2 class="h6"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Productos por reponer</h2>
+      <h2 class="h6 mb-3"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Productos por reponer</h2>
       @if (alertas().length === 0) {
-        <p class="text-muted mb-0">No hay productos por debajo de su stock mínimo.</p>
+        <p class="vacio mb-0"><i class="bi bi-check2-circle"></i>No hay productos por debajo de su stock mínimo.</p>
       } @else {
         <div class="table-responsive">
           <table class="table table-sm align-middle mb-0">
@@ -44,9 +44,9 @@
             <tbody>
               @for (p of alertas(); track p.id) {
                 <tr class="fila-stock-bajo">
-                  <td>{{ p.codigo }}</td>
+                  <td class="text-nowrap">{{ p.codigo }}</td>
                   <td>{{ p.descripcion }}</td>
-                  <td class="text-end fw-bold">{{ p.stock }}</td>
+                  <td class="text-end fw-bold text-danger">{{ p.stock }}</td>
                   <td class="text-end">{{ p.stockMinimo }}</td>
                 </tr>
               }
@@ -61,18 +61,18 @@
   </div>
   <div class="col-lg-5">
     <div class="tarjeta">
-      <h2 class="h6"><i class="bi bi-cash-coin me-1"></i>Caja y ventas del día</h2>
+      <h2 class="h6 mb-3"><i class="bi bi-cash-coin me-1"></i>Caja y ventas del día</h2>
       <ul class="list-unstyled mb-0">
-        <li class="d-flex justify-content-between py-1">
+        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
           <span>Mi caja</span>
           @if (cajaAbierta()) {
             <span class="badge text-bg-success">Abierta</span>
           } @else {
-            <a routerLink="/caja" class="badge text-bg-secondary text-decoration-none">Cerrada · abrir</a>
+            <a routerLink="/caja" class="btn btn-sm btn-outline-marca py-0">Cerrada · abrir</a>
           }
         </li>
-        <li class="d-flex justify-content-between py-1"><span>Ventas del día (sin anuladas)</span><strong>{{ (resumen()?.ventasHoy ?? 0) | currency: 'PEN' : 'S/ ' }}</strong></li>
-        <li class="d-flex justify-content-between py-1"><span>Número de ventas</span><strong>{{ numeroVentas() }}</strong></li>
+        <li class="d-flex justify-content-between py-2 border-bottom"><span>Ventas del día (sin anuladas)</span><strong>{{ (resumen()?.ventasHoy ?? 0) | currency: 'PEN' : 'S/ ' }}</strong></li>
+        <li class="d-flex justify-content-between pt-2"><span>Número de ventas</span><strong>{{ numeroVentas() }}</strong></li>
       </ul>
     </div>
   </div>

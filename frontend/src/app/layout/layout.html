@@ -1,13 +1,16 @@
 <div class="d-flex min-vh-100">
   <nav class="lateral text-white p-3" [class.abierto]="menuAbierto()">
-    <div class="d-flex align-items-center gap-2 mb-4 px-2">
-      <i class="bi bi-tools fs-4 text-warning"></i>
-      <span class="fw-bold">Ferretería</span>
+    <div class="marca d-flex align-items-center gap-2 mb-4 px-2">
+      <i class="bi bi-tools fs-4"></i>
+      <div class="lh-sm">
+        <div class="fw-bold">Ferretería</div>
+        <div class="marca-sub">Ventas e inventario</div>
+      </div>
     </div>
     <ul class="nav flex-column gap-1">
       @for (opcion of opciones(); track opcion.ruta) {
         <li class="nav-item">
-          <a class="nav-link" [routerLink]="opcion.ruta" routerLinkActive="activo" (click)="menuAbierto.set(false)">
+          <a class="nav-link" [routerLink]="opcion.ruta" routerLinkActive="activo" ariaCurrentWhenActive="page" (click)="menuAbierto.set(false)">
             <i class="bi {{ opcion.icono }} me-2"></i>{{ opcion.texto }}
           </a>
         </li>
@@ -15,17 +18,22 @@
     </ul>
   </nav>
 
+  @if (menuAbierto()) {
+    <div class="fondo-menu d-md-none" (click)="menuAbierto.set(false)" aria-hidden="true"></div>
+  }
+
   <div class="flex-grow-1 d-flex flex-column contenido">
-    <header class="bg-white border-bottom px-3 py-2 d-flex align-items-center gap-3">
-      <button class="btn btn-outline-secondary btn-sm d-md-none" (click)="menuAbierto.set(!menuAbierto())"
+    <header class="barra-superior bg-white border-bottom px-3 py-2 d-flex align-items-center gap-3">
+      <button class="btn btn-outline-secondary btn-menu d-md-none" (click)="menuAbierto.set(!menuAbierto())"
               aria-label="Abrir menú">
-        <i class="bi bi-list"></i>
+        <i class="bi bi-list fs-5"></i>
       </button>
-      <div class="ms-auto text-end small">
-        <div class="fw-semibold">{{ auth.usuario()?.nombre }}</div>
+      <span class="fw-bold d-none d-sm-inline d-md-none">Ferretería</span>
+      <div class="ms-auto text-end small lh-sm">
+        <div class="fw-semibold text-nowrap">{{ auth.usuario()?.nombre }}</div>
         <div class="text-muted">{{ auth.esAdministrador() ? 'Administrador' : 'Vendedor' }}</div>
       </div>
-      <button class="btn btn-outline-secondary btn-sm" (click)="salir()">
+      <button class="btn btn-outline-secondary btn-sm text-nowrap" (click)="salir()">
         <i class="bi bi-box-arrow-right"></i> Salir
       </button>
     </header>

@@ -1,7 +1,10 @@
 <header class="text-white py-3 px-3" style="background: var(--color-lateral)">
   <div class="container d-flex align-items-center gap-2">
-    <i class="bi bi-tools fs-4 text-warning"></i>
-    <span class="fw-bold me-auto">Ferretería · Catálogo de productos</span>
+    <i class="bi bi-tools fs-4 icono-marca"></i>
+    <div class="me-auto lh-sm">
+      <div class="fw-bold">Ferretería</div>
+      <div class="small text-white-50">Catálogo de productos</div>
+    </div>
     <a routerLink="/login" class="btn btn-sm btn-outline-light">Personal</a>
   </div>
 </header>
@@ -10,15 +13,15 @@
   <form class="input-group input-group-lg mb-3" (ngSubmit)="buscar()">
     <span class="input-group-text"><i class="bi bi-search"></i></span>
     <input class="form-control" placeholder="¿Qué producto busca? (por ejemplo: martillo, PVC, pintura)"
-           name="texto" [(ngModel)]="texto">
+           aria-label="Buscar producto" name="texto" [(ngModel)]="texto">
     <button class="btn btn-marca" type="submit">Buscar</button>
   </form>
 
-  <div class="d-flex flex-wrap gap-2 mb-4">
-    <button class="btn btn-sm" [class.btn-marca]="!categoriaId()" [class.btn-outline-secondary]="!!categoriaId()"
+  <div class="d-flex flex-nowrap flex-md-wrap gap-2 mb-4 overflow-auto pb-1">
+    <button class="btn btn-sm text-nowrap" [class.btn-marca]="!categoriaId()" [class.btn-outline-secondary]="!!categoriaId()"
             (click)="elegirCategoria()">Todas</button>
     @for (c of categorias(); track c.id) {
-      <button class="btn btn-sm" [class.btn-marca]="categoriaId() === c.id"
+      <button class="btn btn-sm text-nowrap" [class.btn-marca]="categoriaId() === c.id"
               [class.btn-outline-secondary]="categoriaId() !== c.id" (click)="elegirCategoria(c.id)">{{ c.nombre }}</button>
     }
   </div>
@@ -31,9 +34,9 @@
     @for (p of productos(); track p.codigo) {
       <div class="col-sm-6 col-lg-4 col-xl-3">
         <div class="tarjeta h-100 d-flex flex-column">
-          <div class="small text-muted">{{ p.categoria }}</div>
+          <div class="etiqueta">{{ p.categoria }}</div>
           <div class="fw-semibold my-1">{{ p.descripcion }}</div>
-          <div class="small text-muted mb-2">Código {{ p.codigo }}</div>
+          <div class="small text-muted mb-3">Código {{ p.codigo }}</div>
           <div class="mt-auto d-flex align-items-center justify-content-between">
             <span class="fs-5 fw-bold">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</span>
             @if (p.disponible) {
@@ -45,9 +48,13 @@
         </div>
       </div>
     } @empty {
-      @if (!cargando()) {
-        <p class="text-muted">No encontramos productos con esa búsqueda.</p>
-      }
+      <div class="col-12">
+        @if (cargando()) {
+          <p class="vacio mb-0" role="status"><span class="spinner-border spinner-border-sm me-2"></span>Cargando productos…</p>
+        } @else {
+          <p class="vacio mb-0"><i class="bi bi-search"></i>No encontramos productos con esa búsqueda.</p>
+        }
+      </div>
     }
   </div>
 

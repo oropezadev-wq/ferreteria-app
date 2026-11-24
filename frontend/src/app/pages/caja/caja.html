@@ -8,14 +8,14 @@
   <div class="row g-3">
     <div class="col-lg-6">
       <div class="tarjeta">
-        <h2 class="h6 mb-3">Turno actual <span class="badge text-bg-success ms-1">Abierto</span></h2>
-        <p class="small text-muted">Desde {{ t.fechaApertura | date: 'dd/MM/yyyy HH:mm' }}</p>
+        <h2 class="h6 mb-1">Turno actual <span class="badge text-bg-success ms-1">Abierto</span></h2>
+        <p class="small text-muted mb-3">Desde {{ t.fechaApertura | date: 'dd/MM/yyyy HH:mm' }}</p>
         <ul class="list-unstyled mb-0">
           <li class="d-flex justify-content-between py-1"><span>Monto de apertura</span><span>{{ t.montoApertura | currency: 'PEN' : 'S/ ' }}</span></li>
           <li class="d-flex justify-content-between py-1"><span>Ventas en efectivo</span><span>{{ t.ventasEfectivo | currency: 'PEN' : 'S/ ' }}</span></li>
           <li class="d-flex justify-content-between py-1"><span>Ventas con tarjeta</span><span>{{ t.ventasTarjeta | currency: 'PEN' : 'S/ ' }}</span></li>
           <li class="d-flex justify-content-between py-1"><span>Ventas con Yape / Plin</span><span>{{ t.ventasYape | currency: 'PEN' : 'S/ ' }}</span></li>
-          <li class="d-flex justify-content-between py-1 border-top fw-bold"><span>Efectivo esperado</span><span>{{ t.montoEsperado | currency: 'PEN' : 'S/ ' }}</span></li>
+          <li class="d-flex justify-content-between pt-2 mt-1 border-top fw-bold fs-5"><span>Efectivo esperado</span><span>{{ t.montoEsperado | currency: 'PEN' : 'S/ ' }}</span></li>
         </ul>
         <p class="small text-muted mt-2 mb-0">Las ventas anuladas no se cuentan.</p>
       </div>
@@ -27,7 +27,7 @@
         <input id="contado" type="number" min="0" step="0.10" class="form-control mb-3"
                [ngModel]="contado()" (ngModelChange)="contado.set($event)">
         @if (diferencia() !== null) {
-          <div class="alert py-2" [class.alert-success]="diferencia() === 0"
+          <div class="alert py-2 fw-semibold" role="status" [class.alert-success]="diferencia() === 0"
                [class.alert-warning]="diferencia()! > 0" [class.alert-danger]="diferencia()! < 0">
             @if (diferencia() === 0) { Caja cuadrada. }
             @else if (diferencia()! > 0) { Sobrante de {{ diferencia() | currency: 'PEN' : 'S/ ' }} }
@@ -42,7 +42,7 @@
   </div>
 } @else {
   @if (cerrado(); as c) {
-    <div class="alert alert-info" style="max-width: 420px">
+    <div class="alert alert-info" role="status" style="max-width: 420px">
       Turno cerrado. Esperado {{ c.montoEsperado | currency: 'PEN' : 'S/ ' }},
       contado {{ c.montoContado | currency: 'PEN' : 'S/ ' }},
       diferencia {{ c.diferencia | currency: 'PEN' : 'S/ ' }}.

@@ -72,7 +72,7 @@
 
 <div class="tarjeta">
   <form class="input-group mb-3" (ngSubmit)="buscar()">
-    <input class="form-control" placeholder="Buscar por código o descripción" name="texto" [(ngModel)]="texto">
+    <input class="form-control" placeholder="Buscar por código o descripción" aria-label="Buscar por código o descripción" name="texto" [(ngModel)]="texto">
     <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i> Buscar</button>
   </form>
 
@@ -81,13 +81,13 @@
       <thead>
         <tr>
           <th>Código</th><th>Descripción</th><th>Categoría</th>
-          <th class="text-end">P. venta</th><th class="text-end">Stock</th><th>Estado</th><th></th>
+          <th class="text-end">P. venta</th><th class="text-end">Stock</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th>
         </tr>
       </thead>
       <tbody>
         @for (p of productos(); track p.id) {
           <tr [class.fila-stock-bajo]="p.stockBajo && p.activo" [class.text-muted]="!p.activo">
-            <td>{{ p.codigo }}</td>
+            <td class="text-nowrap">{{ p.codigo }}</td>
             <td>{{ p.descripcion }}</td>
             <td>{{ p.categoriaNombre }}</td>
             <td class="text-end">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
@@ -98,15 +98,15 @@
               </span>
             </td>
             <td class="text-end text-nowrap">
-              <button class="btn btn-sm btn-outline-primary me-1" (click)="editar(p)" title="Editar"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-secondary me-1" (click)="editar(p)" title="Editar" aria-label="Editar"><i class="bi bi-pencil"></i></button>
               <button class="btn btn-sm" [class.btn-outline-danger]="p.activo" [class.btn-outline-success]="!p.activo"
-                      (click)="cambiarEstado(p)" [title]="p.activo ? 'Desactivar' : 'Activar'">
+                      (click)="cambiarEstado(p)" [title]="p.activo ? 'Desactivar' : 'Activar'" [attr.aria-label]="p.activo ? 'Desactivar' : 'Activar'">
                 <i class="bi" [class.bi-slash-circle]="p.activo" [class.bi-check-circle]="!p.activo"></i>
               </button>
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="7" class="text-center text-muted py-4">No se encontraron productos.</td></tr>
+          <tr><td colspan="7" class="vacio"><i class="bi bi-box-seam"></i>No se encontraron productos.</td></tr>
         }
       </tbody>
     </table>

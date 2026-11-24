@@ -1,31 +1,211 @@
+/*
+ * Tokens del sistema: azul pizarra para la estructura, naranja ladrillo
+ * como único color de acción y neutros grises con contraste AA.
+ */
 :root {
   --color-marca: #c2410c;
+  --color-marca-oscuro: #9a3412;
+  --color-marca-suave: #fff7ed;
   --color-lateral: #1f2937;
+  --color-borde: #e5e7eb;
+  --color-fondo: #f3f4f6;
+  --color-texto: #1f2937;
+  --color-texto-sec: #4b5563;
+
+  /* Bootstrap: texto secundario más oscuro para cumplir AA sobre el fondo gris. */
+  --bs-body-color: var(--color-texto);
+  --bs-secondary-color: var(--color-texto-sec);
+  --bs-border-color: var(--color-borde);
+  --bs-link-color: var(--color-marca);
+  --bs-link-color-rgb: 194, 65, 12;
+  --bs-link-hover-color: var(--color-marca-oscuro);
+  --bs-link-hover-color-rgb: 154, 52, 18;
+  --bs-focus-ring-color: rgb(194 65 12 / 25%);
 }
 
 body {
-  background: #f3f4f6;
+  background: var(--color-fondo);
+  /* Cifras de igual ancho: montos y stock se alinean en columnas. */
+  font-variant-numeric: tabular-nums;
 }
 
+/* Jerarquía: título de pantalla > título de bloque > etiqueta. */
+main h1.h4 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.tarjeta h2.h6 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.etiqueta {
+  font-size: 0.8125rem;
+  color: var(--color-texto-sec);
+}
+
+.cifra {
+  font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Botones */
 .btn-marca {
   --bs-btn-bg: var(--color-marca);
   --bs-btn-border-color: var(--color-marca);
-  --bs-btn-hover-bg: #9a3412;
-  --bs-btn-hover-border-color: #9a3412;
+  --bs-btn-hover-bg: var(--color-marca-oscuro);
+  --bs-btn-hover-border-color: var(--color-marca-oscuro);
   --bs-btn-active-bg: #7c2d12;
+  --bs-btn-active-border-color: #7c2d12;
+  --bs-btn-disabled-bg: var(--color-marca);
+  --bs-btn-disabled-border-color: var(--color-marca);
   --bs-btn-color: #fff;
   --bs-btn-hover-color: #fff;
+  --bs-btn-active-color: #fff;
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-focus-shadow-rgb: 194, 65, 12;
+  font-weight: 500;
 }
 
+.btn-outline-marca {
+  --bs-btn-color: var(--color-marca);
+  --bs-btn-border-color: var(--color-marca);
+  --bs-btn-hover-bg: var(--color-marca-suave);
+  --bs-btn-hover-color: var(--color-marca-oscuro);
+  --bs-btn-hover-border-color: var(--color-marca);
+  --bs-btn-active-bg: var(--color-marca);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-border-color: var(--color-marca);
+  --bs-btn-focus-shadow-rgb: 194, 65, 12;
+}
+
+/* Foco visible y del color de la marca en todos los controles. */
+.btn:focus-visible,
+.nav-link:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-marca);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.form-control:focus,
+.form-select:focus,
+.btn-check:focus-visible + .btn {
+  border-color: #ea580c;
+  box-shadow: 0 0 0 0.2rem rgb(194 65 12 / 20%);
+}
+
+/* Bloques de contenido */
 .tarjeta {
   background: #fff;
+  border: 1px solid var(--color-borde);
   border-radius: 0.5rem;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
   padding: 1.25rem;
 }
 
+.tarjeta-alerta {
+  border-left: 3px solid #dc2626;
+}
+
+@media (max-width: 575.98px) {
+  .tarjeta {
+    padding: 1rem;
+  }
+}
+
+/* Tablas: encabezado discreto, filas legibles y cifras alineadas. */
+.table {
+  --bs-table-hover-bg: #f9fafb;
+}
+
+.table > thead th {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-texto-sec);
+  background: #f9fafb;
+  border-bottom: 1px solid var(--color-borde);
+  white-space: nowrap;
+}
+
+.table > tbody td.text-end {
+  white-space: nowrap;
+}
+
 .fila-stock-bajo td {
-  background: #fee2e2 !important;
+  background: #fef2f2 !important;
+}
+
+.fila-stock-bajo td:first-child {
+  box-shadow: inset 3px 0 0 #dc2626;
+}
+
+/* Estado vacío de tablas y listas. */
+.vacio {
+  color: var(--color-texto-sec);
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.vacio .bi {
+  display: block;
+  font-size: 1.75rem;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+}
+
+/* Ícono de la marca sobre fondo oscuro (catálogo). */
+.icono-marca {
+  color: #fb923c;
+}
+
+/* Kardex: la descripción no se aprieta; la tabla se desplaza en celular. */
+.celda-producto {
+  min-width: 12rem;
+}
+
+@media (max-width: 575.98px) {
+  .filtros-kardex h2 {
+    flex-basis: 100%;
+  }
+
+  .filtros-kardex .form-control,
+  .filtros-kardex .form-select {
+    flex: 1 1 100%;
+    width: 100% !important;
+  }
+}
+
+/* Ventas */
+.col-cantidad {
+  width: 5.5rem;
+}
+
+/* El comprobante recién emitido se distingue del resto de bloques. */
+.tarjeta-comprobante {
+  border-left: 3px solid #16a34a;
+}
+
+/* En escritorio el total y el botón Cobrar quedan a la vista al bajar por el carrito. */
+/* En celular el carrito gana ancho para la descripción del producto. */
+@media (max-width: 575.98px) {
+  .tabla-carrito > :not(caption) > * > * {
+    padding-inline: 0.25rem;
+  }
+
+  .tabla-carrito .col-cantidad {
+    width: 4rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .resumen-venta {
+    position: sticky;
+    top: 4.5rem;
+  }
 }
 
 /* Al imprimir desde Ventas solo sale el comprobante. */

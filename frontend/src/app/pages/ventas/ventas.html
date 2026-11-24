@@ -8,11 +8,11 @@
 }
 
 @if (ultimaVenta(); as v) {
-  <div class="tarjeta mb-3 comprobante">
+  <div class="tarjeta tarjeta-comprobante mb-3 comprobante">
     <div class="d-flex justify-content-between flex-wrap gap-2">
       <div>
-        <div class="fw-bold">{{ v.tipoComprobante === 'FACTURA' ? 'FACTURA' : 'BOLETA DE VENTA' }} ELECTRÓNICA</div>
-        <div class="fs-5">{{ v.comprobante }}</div>
+        <div class="etiqueta fw-semibold">{{ v.tipoComprobante === 'FACTURA' ? 'FACTURA' : 'BOLETA DE VENTA' }} ELECTRÓNICA</div>
+        <div class="fs-5 fw-bold">{{ v.comprobante }}</div>
         <div class="small text-muted">{{ v.fecha | date: 'dd/MM/yyyy HH:mm' }} · Atendió: {{ v.vendedor }}</div>
         @if (v.clienteDocumento) {
           <div class="small">Cliente: {{ v.clienteNombre }} ({{ v.clienteDocumento }})</div>
@@ -45,16 +45,17 @@
       <form class="input-group" (ngSubmit)="buscar()">
         <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
         <input class="form-control form-control-lg" placeholder="Código o descripción del producto"
+               aria-label="Código o descripción del producto"
                name="texto" [(ngModel)]="texto" autofocus>
         <button class="btn btn-marca" type="submit">Buscar</button>
       </form>
       @if (resultados().length > 1) {
         <div class="list-group mt-2">
           @for (p of resultados(); track p.id) {
-            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between"
+            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between gap-2"
                     (click)="agregar(p)" [disabled]="p.stock === 0">
               <span>{{ p.codigo }} · {{ p.descripcion }}</span>
-              <span>{{ p.precioVenta | currency: 'PEN' : 'S/ ' }} <small class="text-muted">(stock {{ p.stock }})</small></span>
+              <span class="text-nowrap">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }} <small class="text-muted">(stock {{ p.stock }})</small></span>
             </button>
           }
         </div>
@@ -63,24 +64,25 @@
 
     <div class="tarjeta">
       <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead><tr><th>Producto</th><th style="width: 110px">Cant.</th><th class="text-end">P. unit.</th><th class="text-end">Importe</th><th></th></tr></thead>
+        <table class="table align-middle mb-0 tabla-carrito">
+          <thead><tr><th>Producto</th><th class="col-cantidad">Cant.</th><th class="text-end d-none d-sm-table-cell">P. unit.</th><th class="text-end">Importe</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
           <tbody>
             @for (l of lineas(); track l.producto.id) {
               <tr>
-                <td>{{ l.producto.descripcion }}<div class="small text-muted">{{ l.producto.codigo }}</div></td>
+                <td>{{ l.producto.descripcion }}<div class="small text-muted">{{ l.producto.codigo }}<span class="d-sm-none"> · {{ l.producto.precioVenta | currency: 'PEN' : 'S/ ' }} c/u</span></div></td>
                 <td>
                   <input type="number" min="1" [max]="l.producto.stock" class="form-control form-control-sm"
+                         [attr.aria-label]="'Cantidad de ' + l.producto.descripcion"
                          [ngModel]="l.cantidad" (ngModelChange)="cambiarCantidad(l, $event)">
                 </td>
-                <td class="text-end">{{ l.producto.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
+                <td class="text-end d-none d-sm-table-cell">{{ l.producto.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
                 <td class="text-end fw-semibold">{{ l.producto.precioVenta * l.cantidad | currency: 'PEN' : 'S/ ' }}</td>
                 <td class="text-end">
-                  <button class="btn btn-sm btn-outline-danger" (click)="quitar(l)" title="Quitar"><i class="bi bi-trash"></i></button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="quitar(l)" title="Quitar" aria-label="Quitar"><i class="bi bi-trash"></i></button>
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="5" class="text-center text-muted py-4">Busque un producto para empezar la venta.</td></tr>
+              <tr><td colspan="5" class="vacio"><i class="bi bi-upc-scan"></i>Busque un producto para empezar la venta.</td></tr>
             }
           </tbody>
         </table>
@@ -89,14 +91,14 @@
   </div>
 
   <div class="col-lg-4">
-    <div class="tarjeta">
+    <div class="tarjeta resumen-venta">
       <div class="mb-3">
-        <span class="form-label d-block">Comprobante</span>
+        <span class="form-label d-block fw-semibold">Comprobante</span>
         <div class="btn-group w-100" role="group">
           <input type="radio" class="btn-check" id="boleta" name="tipoComprobante" value="BOLETA" [(ngModel)]="tipoComprobante">
-          <label class="btn btn-outline-secondary" for="boleta">Boleta</label>
+          <label class="btn btn-outline-marca" for="boleta">Boleta</label>
           <input type="radio" class="btn-check" id="factura" name="tipoComprobante" value="FACTURA" [(ngModel)]="tipoComprobante">
-          <label class="btn btn-outline-secondary" for="factura">Factura</label>
+          <label class="btn btn-outline-marca" for="factura">Factura</label>
         </div>
       </div>
       <div class="mb-3">
@@ -115,10 +117,10 @@
           }
         }
       </div>
-      <div class="d-flex justify-content-between"><span>Op. gravada</span><span>{{ gravada() | currency: 'PEN' : 'S/ ' }}</span></div>
-      <div class="d-flex justify-content-between"><span>IGV (18 %)</span><span>{{ igv() | currency: 'PEN' : 'S/ ' }}</span></div>
-      <hr>
-      <div class="d-flex justify-content-between fs-4 fw-bold mb-3"><span>Total</span><span>{{ total() | currency: 'PEN' : 'S/ ' }}</span></div>
+      <div class="d-flex justify-content-between text-muted"><span>Op. gravada</span><span>{{ gravada() | currency: 'PEN' : 'S/ ' }}</span></div>
+      <div class="d-flex justify-content-between text-muted"><span>IGV (18 %)</span><span>{{ igv() | currency: 'PEN' : 'S/ ' }}</span></div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between align-items-baseline fs-4 fw-bold mb-3"><span>Total</span><span>{{ total() | currency: 'PEN' : 'S/ ' }}</span></div>
       <label class="form-label" for="metodo">Método de pago</label>
       <select id="metodo" class="form-select mb-3" [(ngModel)]="metodoPago">
         <option value="EFECTIVO">Efectivo</option>
