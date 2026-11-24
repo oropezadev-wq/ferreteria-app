@@ -145,13 +145,15 @@ cd backend
 mvnw test
 ```
 
-53 pruebas, con una base H2 en memoria:
+67 pruebas, con una base H2 en memoria:
 
-- **Unitarias** (sin Spring ni base de datos):
-  - `CreadorMovimientoTest`: 8 pruebas del Factory Method.
-  - `VentaServiceTest`: 11 pruebas de la lógica de ventas con Mockito (IGV, numeración, reglas de
-    boleta y factura, producto desactivado, anulación).
+- **Unitarias** (sin Spring ni base de datos; las dependencias se simulan con Mockito):
+  - `CreadorMovimientoTest`: 8 pruebas del Factory Method del kardex.
+  - `VentaServiceTest`: 11 pruebas de ventas (IGV, numeración, reglas de boleta y factura,
+    producto desactivado, anulación).
   - `UsuarioServiceTest`: 6 pruebas de inicio de sesión y registro de usuarios (BCrypt).
+  - `ProductoServiceTest` (4), `ClienteServiceTest` (4), `CajaServiceTest` (3),
+    `ReporteServiceTest` (2) y `CatalogoServiceTest` (1).
 - **Integración** (controlador, servicio y repositorio juntos):
   - `ApiIntegracionTest`: 12 pruebas de productos, categorías, kardex y panel.
   - `VentaIntegracionTest`: 7 pruebas que cruzan ventas, kardex, clientes, reportes y caja; por

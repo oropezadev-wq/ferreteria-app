@@ -40,19 +40,20 @@ public class ReporteService {
         BigDecimal total = BigDecimal.ZERO;
         BigDecimal costo = BigDecimal.ZERO;
         Map<LocalDate, BigDecimal> porDia = new TreeMap<>();
-        Map<Long, Integer> unidades = new HashMap<>();
+        Map<String, Integer> unidades = new HashMap<>();
         for (Venta venta : validas) {
             total = total.add(venta.getTotal());
             porDia.merge(venta.getFecha().toLocalDate(), venta.getTotal(), BigDecimal::add);
             for (DetalleVenta d : venta.getDetalles()) {
                 costo = costo.add(d.getCostoUnitario().multiply(BigDecimal.valueOf(d.getCantidad())));
-                unidades.merge(d.getProducto().getId(), d.getCantidad(), Integer::sum);
+                unidades.merge(d.getProducto().getCodigo(), d.getCantidad(), Integer::sum);
             }
         }
 
         // Todos los productos activos entran a la rotación, también los que no se vendieron.
+        // Se agrupa por código, que es único y siempre existe.
         List<Rotacion> rotacion = productoRepository.findByActivoTrue().stream()
-                .map(p -> new Rotacion(p.getDescripcion(), unidades.getOrDefault(p.getId(), 0)))
+                .map(p -> new Rotacion(p.getDescripcion(), unidades.getOrDefault(p.getCodigo(), 0)))
                 .sorted(Comparator.comparingInt(Rotacion::unidades).reversed()
                         .thenComparing(Rotacion::producto))
                 .toList();
