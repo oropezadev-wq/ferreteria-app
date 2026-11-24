@@ -1,12 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
+import { mensajeDeError } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
 })
 export class Login {
@@ -14,6 +15,7 @@ export class Login {
   private readonly router = inject(Router);
 
   protected readonly error = signal('');
+  protected readonly enviando = signal(false);
   protected readonly form = inject(FormBuilder).nonNullable.group({
     usuario: ['', Validators.required],
     clave: ['', Validators.required],
@@ -25,10 +27,13 @@ export class Login {
       return;
     }
     const { usuario, clave } = this.form.getRawValue();
-    if (this.auth.ingresar(usuario.trim(), clave)) {
-      this.router.navigate(['/panel']);
-    } else {
-      this.error.set('Usuario o contraseña incorrectos.');
-    }
+    this.enviando.set(true);
+    this.auth.ingresar(usuario.trim(), clave).subscribe({
+      next: () => this.router.navigate(['/panel']),
+      error: (e) => {
+        this.enviando.set(false);
+        this.error.set(mensajeDeError(e));
+      },
+    });
   }
 }

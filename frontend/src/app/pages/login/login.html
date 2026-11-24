@@ -22,11 +22,12 @@
              [class.is-invalid]="form.controls.clave.touched && form.controls.clave.invalid">
       <div class="invalid-feedback">Ingrese su contraseña.</div>
     </div>
-    <button class="btn btn-marca w-100" type="submit">Ingresar</button>
+    <button class="btn btn-marca w-100" type="submit" [disabled]="enviando()">Ingresar</button>
 
-    <p class="text-muted small mt-3 mb-0">
-      Prototipo: <strong>admin / admin123</strong> (administrador) o
+    <p class="text-muted small mt-3 mb-2">
+      Usuarios de prueba: <strong>admin / admin123</strong> (administrador) o
       <strong>vendedor / vendedor123</strong> (vendedor).
     </p>
+    <a routerLink="/catalogo" class="small"><i class="bi bi-shop"></i> Ver el catálogo de productos</a>
   </form>
 </div>

@@ -4,14 +4,23 @@ import { Observable } from 'rxjs';
 
 import {
   Categoria,
+  Cliente,
+  ClienteRequest,
   Movimiento,
   MovimientoRequest,
   Producto,
+  ProductoCatalogo,
   ProductoRequest,
+  ReporteVentas,
   Resumen,
+  TurnoCaja,
+  UsuarioFila,
+  UsuarioRequest,
+  Venta,
+  VentaRequest,
 } from '../models/modelos';
 
-const API = 'http://localhost:8081/api';
+export const API = 'http://localhost:8081/api';
 
 /** Único punto de la vista que habla con la capa de negocio (API REST). */
 @Injectable({ providedIn: 'root' })
@@ -66,6 +75,81 @@ export class ApiService {
   registrarMovimiento(movimiento: MovimientoRequest): Observable<Movimiento> {
     return this.http.post<Movimiento>(`${API}/movimientos`, movimiento);
   }
+
+  registrarVenta(venta: VentaRequest): Observable<Venta> {
+    return this.http.post<Venta>(`${API}/ventas`, venta);
+  }
+
+  ventas(desde: string, hasta: string): Observable<Venta[]> {
+    const params = new HttpParams().set('desde', desde).set('hasta', hasta);
+    return this.http.get<Venta[]>(`${API}/ventas`, { params });
+  }
+
+  anularVenta(id: number, motivo: string): Observable<Venta> {
+    return this.http.patch<Venta>(`${API}/ventas/${id}/anular`, { motivo });
+  }
+
+  clientes(texto = ''): Observable<Cliente[]> {
+    return this.http.get<Cliente[]>(`${API}/clientes`, { params: new HttpParams().set('buscar', texto) });
+  }
+
+  crearCliente(cliente: ClienteRequest): Observable<Cliente> {
+    return this.http.post<Cliente>(`${API}/clientes`, cliente);
+  }
+
+  actualizarCliente(id: number, cliente: ClienteRequest): Observable<Cliente> {
+    return this.http.put<Cliente>(`${API}/clientes/${id}`, cliente);
+  }
+
+  /** null si el vendedor no tiene un turno abierto (la API responde 204). */
+  cajaActual(): Observable<TurnoCaja | null> {
+    return this.http.get<TurnoCaja | null>(`${API}/caja/actual`);
+  }
+
+  abrirCaja(monto: number): Observable<TurnoCaja> {
+    return this.http.post<TurnoCaja>(`${API}/caja/abrir`, { monto });
+  }
+
+  cerrarCaja(monto: number, observacion: string): Observable<TurnoCaja> {
+    return this.http.post<TurnoCaja>(`${API}/caja/cerrar`, { monto, observacion });
+  }
+
+  reporteVentas(desde: string, hasta: string): Observable<ReporteVentas> {
+    const params = new HttpParams().set('desde', desde).set('hasta', hasta);
+    return this.http.get<ReporteVentas>(`${API}/reportes/ventas`, { params });
+  }
+
+  usuarios(): Observable<UsuarioFila[]> {
+    return this.http.get<UsuarioFila[]>(`${API}/usuarios`);
+  }
+
+  crearUsuario(usuario: UsuarioRequest): Observable<UsuarioFila> {
+    return this.http.post<UsuarioFila>(`${API}/usuarios`, usuario);
+  }
+
+  cambiarEstadoUsuario(id: number, activo: boolean): Observable<UsuarioFila> {
+    const accion = activo ? 'activar' : 'desactivar';
+    return this.http.patch<UsuarioFila>(`${API}/usuarios/${id}/${accion}`, null);
+  }
+
+  catalogo(texto = '', categoriaId?: number): Observable<ProductoCatalogo[]> {
+    let params = new HttpParams().set('buscar', texto);
+    if (categoriaId) {
+      params = params.set('categoriaId', categoriaId);
+    }
+    return this.http.get<ProductoCatalogo[]>(`${API}/catalogo`, { params });
+  }
+
+  categoriasCatalogo(): Observable<Categoria[]> {
+    return this.http.get<Categoria[]>(`${API}/catalogo/categorias`);
+  }
+}
+
+/** Fecha local en formato AAAA-MM-DD, como la recibe la API. */
+export function fechaIso(fecha = new Date()): string {
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return `${fecha.getFullYear()}-${mes}-${dia}`;
 }
 
 /** Convierte la respuesta de error de la API en un texto para mostrar al usuario. */

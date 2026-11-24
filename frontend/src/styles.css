@@ -24,15 +24,25 @@ body {
   padding: 1.25rem;
 }
 
-/* Aviso en las pantallas que todavía muestran datos de ejemplo. */
-.aviso-prototipo {
-  border-left: 4px solid #f59e0b;
-  background: #fffbeb;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
 .fila-stock-bajo td {
   background: #fee2e2 !important;
+}
+
+/* Al imprimir desde Ventas solo sale el comprobante. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .comprobante,
+  .comprobante * {
+    visibility: visible;
+  }
+  .comprobante {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+  .no-imprimir {
+    display: none !important;
+  }
 }

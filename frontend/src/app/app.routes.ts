@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { Layout } from './layout/layout';
 import { Caja } from './pages/caja/caja';
+import { Catalogo } from './pages/catalogo/catalogo';
 import { Clientes } from './pages/clientes/clientes';
 import { Inventario } from './pages/inventario/inventario';
 import { Login } from './pages/login/login';
@@ -17,6 +18,8 @@ const VENDEDOR = { roles: ['VENDEDOR', 'ADMINISTRADOR'] };
 
 export const routes: Routes = [
   { path: 'login', component: Login },
+  // Página pública para los clientes: no pide inicio de sesión.
+  { path: 'catalogo', component: Catalogo },
   {
     path: '',
     component: Layout,

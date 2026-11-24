@@ -1,13 +1,42 @@
 <h1 class="h4 mb-3">Ventas</h1>
-<div class="aviso-prototipo">
-  La búsqueda de productos usa datos reales de la API. El cobro todavía no registra la venta ni emite el comprobante.
-</div>
 
 @if (error()) {
   <div class="alert alert-danger py-2">{{ error() }}</div>
 }
 @if (mensaje()) {
-  <div class="alert alert-info py-2">{{ mensaje() }}</div>
+  <div class="alert alert-success py-2">{{ mensaje() }}</div>
+}
+
+@if (ultimaVenta(); as v) {
+  <div class="tarjeta mb-3 comprobante">
+    <div class="d-flex justify-content-between flex-wrap gap-2">
+      <div>
+        <div class="fw-bold">{{ v.tipoComprobante === 'FACTURA' ? 'FACTURA' : 'BOLETA DE VENTA' }} ELECTRÓNICA</div>
+        <div class="fs-5">{{ v.comprobante }}</div>
+        <div class="small text-muted">{{ v.fecha | date: 'dd/MM/yyyy HH:mm' }} · Atendió: {{ v.vendedor }}</div>
+        @if (v.clienteDocumento) {
+          <div class="small">Cliente: {{ v.clienteNombre }} ({{ v.clienteDocumento }})</div>
+        }
+      </div>
+      <div class="text-end">
+        <div class="small">Op. gravada {{ v.gravada | currency: 'PEN' : 'S/ ' }}</div>
+        <div class="small">IGV {{ v.igv | currency: 'PEN' : 'S/ ' }}</div>
+        <div class="fs-5 fw-bold">Total {{ v.total | currency: 'PEN' : 'S/ ' }}</div>
+        <span class="badge text-bg-warning">Envío a SUNAT: {{ v.estadoSunat === 'PENDIENTE' ? 'pendiente' : v.estadoSunat }}</span>
+      </div>
+    </div>
+    <table class="table table-sm mt-2 mb-2">
+      <tbody>
+        @for (d of v.detalles; track d.codigo) {
+          <tr><td>{{ d.cantidad }} x {{ d.descripcion }}</td><td class="text-end">{{ d.subtotal | currency: 'PEN' : 'S/ ' }}</td></tr>
+        }
+      </tbody>
+    </table>
+    <div class="d-flex gap-2 no-imprimir">
+      <button class="btn btn-outline-secondary btn-sm" (click)="imprimir()"><i class="bi bi-printer"></i> Imprimir</button>
+      <button class="btn btn-marca btn-sm" (click)="nuevaVenta()">Nueva venta</button>
+    </div>
+  </div>
 }
 
 <div class="row g-3">
@@ -80,6 +109,10 @@
           <label class="form-label" for="documento">DNI del cliente (opcional)</label>
           <input id="documento" class="form-control" placeholder="8 dígitos" maxlength="8" [(ngModel)]="documento">
           <div class="form-text">Obligatorio si la boleta supera S/ 700.</div>
+          @if (documento.trim()) {
+            <label class="form-label mt-2" for="nombre">Nombre del cliente (opcional)</label>
+            <input id="nombre" class="form-control" [(ngModel)]="razonSocial">
+          }
         }
       </div>
       <div class="d-flex justify-content-between"><span>Op. gravada</span><span>{{ gravada() | currency: 'PEN' : 'S/ ' }}</span></div>
@@ -92,7 +125,7 @@
         <option value="TARJETA">Tarjeta</option>
         <option value="YAPE">Yape / Plin</option>
       </select>
-      <button class="btn btn-marca btn-lg w-100" [disabled]="lineas().length === 0" (click)="cobrar()">
+      <button class="btn btn-marca btn-lg w-100" [disabled]="lineas().length === 0 || enviando()" (click)="cobrar()">
         <i class="bi bi-check2-circle"></i> Cobrar
       </button>
     </div>

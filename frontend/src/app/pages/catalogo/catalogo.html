@@ -1,0 +1,55 @@
+<header class="text-white py-3 px-3" style="background: var(--color-lateral)">
+  <div class="container d-flex align-items-center gap-2">
+    <i class="bi bi-tools fs-4 text-warning"></i>
+    <span class="fw-bold me-auto">Ferretería · Catálogo de productos</span>
+    <a routerLink="/login" class="btn btn-sm btn-outline-light">Personal</a>
+  </div>
+</header>
+
+<main class="container py-4">
+  <form class="input-group input-group-lg mb-3" (ngSubmit)="buscar()">
+    <span class="input-group-text"><i class="bi bi-search"></i></span>
+    <input class="form-control" placeholder="¿Qué producto busca? (por ejemplo: martillo, PVC, pintura)"
+           name="texto" [(ngModel)]="texto">
+    <button class="btn btn-marca" type="submit">Buscar</button>
+  </form>
+
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <button class="btn btn-sm" [class.btn-marca]="!categoriaId()" [class.btn-outline-secondary]="!!categoriaId()"
+            (click)="elegirCategoria()">Todas</button>
+    @for (c of categorias(); track c.id) {
+      <button class="btn btn-sm" [class.btn-marca]="categoriaId() === c.id"
+              [class.btn-outline-secondary]="categoriaId() !== c.id" (click)="elegirCategoria(c.id)">{{ c.nombre }}</button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  <div class="row g-3">
+    @for (p of productos(); track p.codigo) {
+      <div class="col-sm-6 col-lg-4 col-xl-3">
+        <div class="tarjeta h-100 d-flex flex-column">
+          <div class="small text-muted">{{ p.categoria }}</div>
+          <div class="fw-semibold my-1">{{ p.descripcion }}</div>
+          <div class="small text-muted mb-2">Código {{ p.codigo }}</div>
+          <div class="mt-auto d-flex align-items-center justify-content-between">
+            <span class="fs-5 fw-bold">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</span>
+            @if (p.disponible) {
+              <span class="badge text-bg-success">Disponible</span>
+            } @else {
+              <span class="badge text-bg-secondary">Agotado</span>
+            }
+          </div>
+        </div>
+      </div>
+    } @empty {
+      @if (!cargando()) {
+        <p class="text-muted">No encontramos productos con esa búsqueda.</p>
+      }
+    }
+  </div>
+
+  <p class="small text-muted mt-4 mb-0">Precios con IGV incluido. La compra se realiza en tienda.</p>
+</main>
