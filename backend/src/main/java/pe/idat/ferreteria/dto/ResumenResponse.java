@@ -6,5 +6,6 @@ public record ResumenResponse(
         long productosActivos,
         long productosStockBajo,
         BigDecimal valorInventario,
-        long movimientosHoy) {
+        long movimientosHoy,
+        BigDecimal ventasHoy) {
 }

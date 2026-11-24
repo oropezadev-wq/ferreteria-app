@@ -17,10 +17,13 @@ public class PanelService {
 
     private final ProductoRepository productoRepository;
     private final MovimientoKardexRepository movimientoRepository;
+    private final ReporteService reporteService;
 
-    public PanelService(ProductoRepository productoRepository, MovimientoKardexRepository movimientoRepository) {
+    public PanelService(ProductoRepository productoRepository, MovimientoKardexRepository movimientoRepository,
+                        ReporteService reporteService) {
         this.productoRepository = productoRepository;
         this.movimientoRepository = movimientoRepository;
+        this.reporteService = reporteService;
     }
 
     @Transactional(readOnly = true)
@@ -32,6 +35,7 @@ public class PanelService {
                 .map(p -> p.getPrecioCompra().multiply(BigDecimal.valueOf(p.getStock())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         long movimientosHoy = movimientoRepository.countByFechaAfter(LocalDate.now().atStartOfDay());
-        return new ResumenResponse(activos.size(), stockBajo, valor, movimientosHoy);
+        return new ResumenResponse(activos.size(), stockBajo, valor, movimientosHoy,
+                reporteService.totalDelDia(LocalDate.now()));
     }
 }

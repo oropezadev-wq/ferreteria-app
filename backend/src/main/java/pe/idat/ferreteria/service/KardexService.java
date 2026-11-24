@@ -35,6 +35,9 @@ public class KardexService {
     /** El cambio de stock y su fila de kardex se guardan juntos o no se guarda ninguno. */
     @Transactional
     public MovimientoResponse registrar(MovimientoRequest request) {
+        if (request.tipo() == TipoMovimiento.DEVOLUCION) {
+            throw new ReglaNegocioException("La devolución se registra sola al anular una venta");
+        }
         Producto producto = productoService.buscarEntidad(request.productoId());
         if (!producto.isActivo()) {
             throw new ReglaNegocioException("El producto " + producto.getCodigo() + " está desactivado");
@@ -45,6 +48,16 @@ public class KardexService {
         MovimientoKardex movimiento = creador.registrar(producto, request.cantidad(), request.motivo().trim(),
                 documento);
         return MovimientoResponse.de(movimientoRepository.save(movimiento));
+    }
+
+    /**
+     * Lo usan las ventas: la salida (al vender) o la devolución (al anular) se guarda dentro de
+     * la misma transacción de la venta, así que si algo falla no queda stock descontado a medias.
+     */
+    @Transactional
+    public MovimientoKardex registrarPorVenta(Producto producto, TipoMovimiento tipo, int cantidad, String motivo) {
+        MovimientoKardex movimiento = creadores.get(tipo).registrar(producto, cantidad, motivo, null);
+        return movimientoRepository.save(movimiento);
     }
 
     /** Con número de documento, devuelve lo que ingresó con esa guía o comprobante. */
