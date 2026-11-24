@@ -1,38 +1,59 @@
-import { CurrencyPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
-interface FilaRotacion {
-  producto: string;
-  unidades: number;
-}
+import { ReporteVentas, Venta } from '../../models/modelos';
+import { ApiService, fechaIso, mensajeDeError } from '../../services/api.service';
 
-/** Pantalla de prototipo de reportes (RF7) con cifras de ejemplo. */
+/** RF7: ventas, utilidad y rotación del periodo, y lista de comprobantes con su anulación. */
 @Component({
   selector: 'app-reportes',
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, DatePipe, FormsModule],
   templateUrl: './reportes.html',
 })
-export class Reportes {
-  protected readonly ventasSemana = [
-    { dia: 'Lun', monto: 980 },
-    { dia: 'Mar', monto: 1240 },
-    { dia: 'Mié', monto: 860 },
-    { dia: 'Jue', monto: 1410 },
-    { dia: 'Vie', monto: 1720 },
-    { dia: 'Sáb', monto: 2150 },
-  ];
-  protected readonly maximo = Math.max(...this.ventasSemana.map((v) => v.monto));
+export class Reportes implements OnInit {
+  private readonly api = inject(ApiService);
 
-  protected readonly mayorRotacion: FilaRotacion[] = [
-    { producto: 'Tornillo drywall 6 x 1" (ciento)', unidades: 86 },
-    { producto: 'Cinta teflón 3/4"', unidades: 64 },
-    { producto: 'Tubo PVC 1/2" x 5 m', unidades: 41 },
-  ];
-  protected readonly menorRotacion: FilaRotacion[] = [
-    { producto: 'Amoladora angular 4 1/2"', unidades: 1 },
-    { producto: 'Taladro percutor 650 W', unidades: 2 },
-    { producto: 'Alicate universal 8"', unidades: 3 },
-  ];
-  protected readonly ventasMes = 28450;
-  protected readonly costoMes = 19320;
+  protected desde = fechaIso(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
+  protected hasta = fechaIso();
+  protected readonly reporte = signal<ReporteVentas | null>(null);
+  protected readonly ventas = signal<Venta[]>([]);
+  protected readonly error = signal('');
+  protected readonly mensaje = signal('');
+  protected readonly maximo = computed(() =>
+    Math.max(1, ...(this.reporte()?.ventasPorDia ?? []).map((d) => d.total)),
+  );
+
+  ngOnInit(): void {
+    this.consultar();
+  }
+
+  consultar(): void {
+    this.api.reporteVentas(this.desde, this.hasta).subscribe({
+      next: (r) => {
+        this.error.set('');
+        this.reporte.set(r);
+      },
+      error: (e) => this.error.set(mensajeDeError(e)),
+    });
+    this.api.ventas(this.desde, this.hasta).subscribe({
+      next: (v) => this.ventas.set(v),
+      error: (e) => this.error.set(mensajeDeError(e)),
+    });
+  }
+
+  /** La anulación devuelve el stock y deja de sumar en el reporte y en la caja. */
+  anular(venta: Venta): void {
+    const motivo = prompt(`Motivo de la anulación de ${venta.comprobante}:`);
+    if (!motivo?.trim()) {
+      return;
+    }
+    this.api.anularVenta(venta.id, motivo.trim()).subscribe({
+      next: (v) => {
+        this.mensaje.set(`Se anuló ${v.comprobante} y sus productos volvieron al stock.`);
+        this.consultar();
+      },
+      error: (e) => this.error.set(mensajeDeError(e)),
+    });
+  }
 }

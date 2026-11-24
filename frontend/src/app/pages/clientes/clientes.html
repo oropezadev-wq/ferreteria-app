@@ -1,38 +1,58 @@
 <h1 class="h4 mb-3">Clientes</h1>
-<div class="aviso-prototipo">Pantalla de prototipo con datos de ejemplo (no se guardan).</div>
 
 <div class="row g-3">
   <div class="col-lg-4">
-    <form class="tarjeta" (ngSubmit)="agregar()">
-      <h2 class="h6 mb-3">Registrar cliente</h2>
+    <form class="tarjeta" (ngSubmit)="guardar()">
+      <h2 class="h6 mb-3">{{ editando() ? 'Editar cliente' : 'Registrar cliente' }}</h2>
       @if (error()) {
         <div class="alert alert-danger py-2 small">{{ error() }}</div>
       }
+      @if (mensaje()) {
+        <div class="alert alert-success py-2 small">{{ mensaje() }}</div>
+      }
       <div class="mb-2">
         <label class="form-label" for="doc">DNI o RUC</label>
-        <input id="doc" class="form-control" name="documento" [(ngModel)]="nuevo.documento" maxlength="11">
+        <input id="doc" class="form-control" name="documento" [(ngModel)]="form.numeroDocumento" maxlength="11"
+               [readonly]="!!editando()">
+        @if (editando()) {
+          <div class="form-text">El documento no se cambia: identifica al cliente en sus comprobantes.</div>
+        }
       </div>
       <div class="mb-2">
         <label class="form-label" for="nombre">Nombre o razón social</label>
-        <input id="nombre" class="form-control" name="nombre" [(ngModel)]="nuevo.nombre">
+        <input id="nombre" class="form-control" name="nombre" [(ngModel)]="form.nombre" maxlength="150">
       </div>
       <div class="mb-3">
         <label class="form-label" for="tel">Teléfono</label>
-        <input id="tel" class="form-control" name="telefono" [(ngModel)]="nuevo.telefono">
+        <input id="tel" class="form-control" name="telefono" [(ngModel)]="form.telefono" maxlength="20">
       </div>
       <button class="btn btn-marca" type="submit">Guardar</button>
+      @if (editando()) {
+        <button class="btn btn-outline-secondary ms-2" type="button" (click)="cancelar()">Cancelar</button>
+      }
     </form>
   </div>
   <div class="col-lg-8">
     <div class="tarjeta">
-      <input class="form-control mb-3" placeholder="Buscar por DNI, RUC o nombre"
-             [ngModel]="filtro()" (ngModelChange)="filtro.set($event)">
+      <form class="input-group mb-3" (ngSubmit)="buscar()">
+        <input class="form-control" placeholder="Buscar por DNI, RUC o nombre" name="filtro" [(ngModel)]="filtro">
+        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+      </form>
       <div class="table-responsive">
-        <table class="table mb-0">
-          <thead><tr><th>Documento</th><th>Nombre</th><th>Teléfono</th></tr></thead>
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Documento</th><th>Nombre</th><th>Teléfono</th><th></th></tr></thead>
           <tbody>
-            @for (c of filtrados(); track c.documento) {
-              <tr><td>{{ c.documento }}</td><td>{{ c.nombre }}</td><td>{{ c.telefono }}</td></tr>
+            @for (c of clientes(); track c.id) {
+              <tr>
+                <td>{{ c.numeroDocumento }} <span class="badge text-bg-light">{{ c.tipoDocumento }}</span></td>
+                <td>{{ c.nombre }}</td>
+                <td>{{ c.telefono }}</td>
+                <td class="text-end">
+                  <button class="btn btn-sm btn-outline-secondary" (click)="editar(c)" title="Editar"><i class="bi bi-pencil"></i></button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4" class="text-center text-muted py-4">No hay clientes registrados.</td></tr>
             }
           </tbody>
         </table>

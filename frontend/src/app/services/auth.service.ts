@@ -1,32 +1,40 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, map, tap } from 'rxjs';
 
+import { API } from './api.service';
 import { Rol, Usuario } from '../models/modelos';
 
-// Prototipo: usuarios de demostración en la vista. En la versión final el backend valida
-// la contraseña (guardada con BCrypt) y devuelve un token JWT con el rol.
-const USUARIOS_DEMO: (Usuario & { clave: string })[] = [
-  { nombre: 'Administrador', usuario: 'admin', clave: 'admin123', rol: 'ADMINISTRADOR' },
-  { nombre: 'Vendedor de turno', usuario: 'vendedor', clave: 'vendedor123', rol: 'VENDEDOR' },
-];
+interface Sesion extends Usuario {
+  token: string;
+}
 
-const CLAVE_SESION = 'ferreteria.usuario';
+const CLAVE_SESION = 'ferreteria.sesion';
 
+/**
+ * Inicio de sesión contra la API. El backend valida la contraseña (guardada con BCrypt)
+ * y devuelve un token JWT con el rol; el token se envía en cada petición (ver auth.interceptor).
+ * Se guarda en sessionStorage: al cerrar el navegador se cierra la sesión.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly actual = signal<Usuario | null>(this.leerSesion());
+  private readonly http = inject(HttpClient);
+  private readonly actual = signal<Sesion | null>(this.leerSesion());
 
-  readonly usuario = this.actual.asReadonly();
+  readonly usuario = computed<Usuario | null>(() => {
+    const sesion = this.actual();
+    return sesion ? { nombre: sesion.nombre, usuario: sesion.usuario, rol: sesion.rol } : null;
+  });
   readonly esAdministrador = computed(() => this.actual()?.rol === 'ADMINISTRADOR');
 
-  ingresar(usuario: string, clave: string): boolean {
-    const encontrado = USUARIOS_DEMO.find((u) => u.usuario === usuario && u.clave === clave);
-    if (!encontrado) {
-      return false;
-    }
-    const { clave: _, ...datos } = encontrado;
-    this.actual.set(datos);
-    sessionStorage.setItem(CLAVE_SESION, JSON.stringify(datos));
-    return true;
+  ingresar(usuario: string, clave: string): Observable<void> {
+    return this.http.post<Sesion>(`${API}/auth/login`, { usuario, clave }).pipe(
+      tap((sesion) => {
+        this.actual.set(sesion);
+        sessionStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
+      }),
+      map(() => undefined),
+    );
   }
 
   salir(): void {
@@ -34,13 +42,17 @@ export class AuthService {
     sessionStorage.removeItem(CLAVE_SESION);
   }
 
-  tieneRol(roles: Rol[]): boolean {
-    const usuario = this.actual();
-    return usuario !== null && roles.includes(usuario.rol);
+  token(): string | null {
+    return this.actual()?.token ?? null;
   }
 
-  private leerSesion(): Usuario | null {
-    const guardado = sessionStorage.getItem(CLAVE_SESION);
-    return guardado ? (JSON.parse(guardado) as Usuario) : null;
+  tieneRol(roles: Rol[]): boolean {
+    const usuario = this.actual();
+    return !!usuario && roles.includes(usuario.rol);
+  }
+
+  private leerSesion(): Sesion | null {
+    const guardada = sessionStorage.getItem(CLAVE_SESION);
+    return guardada ? (JSON.parse(guardada) as Sesion) : null;
   }
 }

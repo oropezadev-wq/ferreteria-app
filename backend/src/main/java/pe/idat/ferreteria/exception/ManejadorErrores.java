@@ -23,6 +23,12 @@ public class ManejadorErrores {
         return new ErrorResponse(ex.getMessage());
     }
 
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse credenciales(CredencialesInvalidasException ex) {
+        return new ErrorResponse(ex.getMessage());
+    }
+
     @ExceptionHandler(ReglaNegocioException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse reglaNegocio(ReglaNegocioException ex) {
@@ -32,7 +38,7 @@ public class ManejadorErrores {
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse concurrencia() {
-        return new ErrorResponse("Otro usuario modificó este producto al mismo tiempo. Vuelva a intentarlo.");
+        return new ErrorResponse("Otro usuario modificó estos datos al mismo tiempo. Vuelva a intentarlo.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

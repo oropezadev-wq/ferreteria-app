@@ -4,13 +4,17 @@ import java.math.BigDecimal;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import pe.idat.ferreteria.dto.CategoriaRequest;
 import pe.idat.ferreteria.dto.MovimientoRequest;
 import pe.idat.ferreteria.dto.ProductoRequest;
+import pe.idat.ferreteria.model.Rol;
 import pe.idat.ferreteria.model.TipoMovimiento;
+import pe.idat.ferreteria.model.Usuario;
 import pe.idat.ferreteria.repository.CategoriaRepository;
+import pe.idat.ferreteria.repository.UsuarioRepository;
 import pe.idat.ferreteria.service.CategoriaService;
 import pe.idat.ferreteria.service.KardexService;
 import pe.idat.ferreteria.service.ProductoService;
@@ -27,17 +31,23 @@ public class DatosIniciales implements CommandLineRunner {
     private final CategoriaService categoriaService;
     private final ProductoService productoService;
     private final KardexService kardexService;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public DatosIniciales(CategoriaRepository categoriaRepository, CategoriaService categoriaService,
-                          ProductoService productoService, KardexService kardexService) {
+                          ProductoService productoService, KardexService kardexService,
+                          UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.categoriaRepository = categoriaRepository;
         this.categoriaService = categoriaService;
         this.productoService = productoService;
         this.kardexService = kardexService;
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
+        crearUsuariosDemo();
         if (categoriaRepository.count() > 0) {
             return;
         }
@@ -58,6 +68,17 @@ public class DatosIniciales implements CommandLineRunner {
         producto("PI-002", "Thinner acrílico 1 L", pinturas, "7.50", "12.00", 10, 8);
         producto("GA-001", "Tubo PVC 1/2\" x 5 m", gasfiteria, "9.00", "14.50", 15, 40);
         producto("GA-002", "Cinta teflón 3/4\"", gasfiteria, "0.80", "1.50", 30, 25);
+    }
+
+    /** Usuarios para probar los dos roles; las contraseñas se guardan con BCrypt. */
+    private void crearUsuariosDemo() {
+        if (usuarioRepository.count() > 0) {
+            return;
+        }
+        usuarioRepository.save(new Usuario("admin", "Administrador", passwordEncoder.encode("admin123"),
+                Rol.ADMINISTRADOR));
+        usuarioRepository.save(new Usuario("vendedor", "Vendedor de turno", passwordEncoder.encode("vendedor123"),
+                Rol.VENDEDOR));
     }
 
     private Long categoria(String nombre) {

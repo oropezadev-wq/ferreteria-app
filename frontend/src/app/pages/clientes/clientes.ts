@@ -1,42 +1,76 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-interface Cliente {
-  documento: string;
+import { Cliente } from '../../models/modelos';
+import { ApiService, mensajeDeError } from '../../services/api.service';
+
+interface FormCliente {
+  numeroDocumento: string;
   nombre: string;
   telefono: string;
 }
 
-/** Pantalla de prototipo: los datos viven solo en la vista. */
+const VACIO: FormCliente = { numeroDocumento: '', nombre: '', telefono: '' };
+
+/** RF de clientes: registrar, buscar y editar compradores con DNI o RUC. */
 @Component({
   selector: 'app-clientes',
   imports: [FormsModule],
   templateUrl: './clientes.html',
 })
-export class Clientes {
-  protected filtro = signal('');
-  protected nuevo: Cliente = { documento: '', nombre: '', telefono: '' };
+export class Clientes implements OnInit {
+  private readonly api = inject(ApiService);
+
+  protected filtro = '';
+  protected form: FormCliente = { ...VACIO };
+  protected readonly editando = signal<Cliente | null>(null);
+  protected readonly clientes = signal<Cliente[]>([]);
   protected readonly error = signal('');
+  protected readonly mensaje = signal('');
 
-  protected readonly clientes = signal<Cliente[]>([
-    { documento: '45781236', nombre: 'Juan Pérez Quispe', telefono: '987 654 321' },
-    { documento: '20512345678', nombre: 'Constructora Los Andes S.A.C.', telefono: '01 456 7890' },
-    { documento: '71234567', nombre: 'María Torres Vega', telefono: '956 123 789' },
-  ]);
+  ngOnInit(): void {
+    this.buscar();
+  }
 
-  protected readonly filtrados = computed(() => {
-    const f = this.filtro().toLowerCase();
-    return this.clientes().filter((c) => c.documento.includes(f) || c.nombre.toLowerCase().includes(f));
-  });
+  buscar(): void {
+    this.api.clientes(this.filtro.trim()).subscribe({
+      next: (lista) => this.clientes.set(lista),
+      error: (e) => this.error.set(mensajeDeError(e)),
+    });
+  }
 
-  agregar(): void {
-    const doc = this.nuevo.documento.trim();
-    if (!/^(\d{8}|\d{11})$/.test(doc) || !this.nuevo.nombre.trim()) {
+  editar(cliente: Cliente): void {
+    this.editando.set(cliente);
+    this.form = { numeroDocumento: cliente.numeroDocumento, nombre: cliente.nombre, telefono: cliente.telefono ?? '' };
+    this.error.set('');
+    this.mensaje.set('');
+  }
+
+  cancelar(): void {
+    this.editando.set(null);
+    this.form = { ...VACIO };
+  }
+
+  guardar(): void {
+    const datos = {
+      numeroDocumento: this.form.numeroDocumento.trim(),
+      nombre: this.form.nombre.trim(),
+      telefono: this.form.telefono.trim() || null,
+    };
+    if (!/^(\d{8}|\d{11})$/.test(datos.numeroDocumento) || !datos.nombre) {
       this.error.set('Ingrese un DNI (8 dígitos) o RUC (11 dígitos) y el nombre.');
       return;
     }
-    this.error.set('');
-    this.clientes.update((cs) => [{ ...this.nuevo, documento: doc }, ...cs]);
-    this.nuevo = { documento: '', nombre: '', telefono: '' };
+    const actual = this.editando();
+    const peticion = actual ? this.api.actualizarCliente(actual.id, datos) : this.api.crearCliente(datos);
+    peticion.subscribe({
+      next: (c) => {
+        this.error.set('');
+        this.mensaje.set(actual ? `Se actualizó a ${c.nombre}.` : `Se registró a ${c.nombre}.`);
+        this.cancelar();
+        this.buscar();
+      },
+      error: (e) => this.error.set(mensajeDeError(e)),
+    });
   }
 }

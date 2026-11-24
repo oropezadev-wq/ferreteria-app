@@ -1,8 +1,8 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-import { Producto } from '../../models/modelos';
+import { MetodoPago, Producto, TipoComprobante, Venta } from '../../models/modelos';
 import { ApiService, mensajeDeError } from '../../services/api.service';
 
 interface LineaVenta {
@@ -14,18 +14,16 @@ const TASA_IGV = 0.18;
 // SUNAT exige identificar al cliente en boletas que superan este monto.
 const TOPE_BOLETA_SIN_DNI = 700;
 
-type TipoComprobante = 'BOLETA' | 'FACTURA';
-
 @Component({
   selector: 'app-ventas',
-  imports: [CurrencyPipe, FormsModule],
+  imports: [CurrencyPipe, DatePipe, FormsModule],
   templateUrl: './ventas.html',
 })
 export class Ventas {
   private readonly api = inject(ApiService);
 
   protected texto = '';
-  protected metodoPago = 'EFECTIVO';
+  protected metodoPago: MetodoPago = 'EFECTIVO';
   protected tipoComprobante: TipoComprobante = 'BOLETA';
   protected documento = '';
   protected razonSocial = '';
@@ -33,6 +31,8 @@ export class Ventas {
   protected readonly lineas = signal<LineaVenta[]>([]);
   protected readonly mensaje = signal('');
   protected readonly error = signal('');
+  protected readonly enviando = signal(false);
+  protected readonly ultimaVenta = signal<Venta | null>(null);
 
   // Los precios ya incluyen IGV: se separa la base imponible del impuesto.
   protected readonly total = computed(() =>
@@ -82,7 +82,10 @@ export class Ventas {
     this.lineas.update((ls) => ls.filter((l) => l !== linea));
   }
 
-  /** Reglas del comprobante: factura con RUC y razón social; boleta con DNI si supera el tope. */
+  /**
+   * Reglas del comprobante: factura con RUC y razón social; boleta con DNI si supera el tope.
+   * La API vuelve a validarlas; aquí se revisan antes para avisar sin esperar al servidor.
+   */
   private validarComprobante(): string {
     const doc = this.documento.trim();
     if (this.tipoComprobante === 'FACTURA') {
@@ -111,10 +114,38 @@ export class Ventas {
       return;
     }
     this.error.set('');
-    const nombre = this.tipoComprobante === 'FACTURA' ? 'la factura' : 'la boleta';
-    this.mensaje.set(
-      `Prototipo: la venta y los datos de ${nombre} son correctos. El registro de la venta y el envío ` +
-        'del comprobante a SUNAT se implementan en la siguiente iteración (CU08).',
-    );
+    this.enviando.set(true);
+    const documento = this.documento.trim();
+    this.api
+      .registrarVenta({
+        tipoComprobante: this.tipoComprobante,
+        metodoPago: this.metodoPago,
+        clienteDocumento: documento || null,
+        clienteNombre: this.razonSocial.trim() || null,
+        lineas: this.lineas().map((l) => ({ productoId: l.producto.id, cantidad: l.cantidad })),
+      })
+      .subscribe({
+        next: (venta) => {
+          this.enviando.set(false);
+          this.ultimaVenta.set(venta);
+          this.mensaje.set(`Venta registrada: ${venta.comprobante} por S/ ${venta.total.toFixed(2)}.`);
+          this.lineas.set([]);
+          this.documento = '';
+          this.razonSocial = '';
+        },
+        error: (e) => {
+          this.enviando.set(false);
+          this.error.set(mensajeDeError(e));
+        },
+      });
+  }
+
+  nuevaVenta(): void {
+    this.ultimaVenta.set(null);
+    this.mensaje.set('');
+  }
+
+  imprimir(): void {
+    window.print();
   }
 }

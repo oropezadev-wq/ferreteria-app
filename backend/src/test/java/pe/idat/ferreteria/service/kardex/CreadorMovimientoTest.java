@@ -89,4 +89,14 @@ class CreadorMovimientoTest {
     void entradaConCantidadCeroSeRechaza() {
         assertThrows(ReglaNegocioException.class, () -> new CreadorEntrada().registrar(martillo, 0, "Compra", guia));
     }
+
+    @Test
+    void devolucionVuelveLaMercaderiaAlStockSinDocumento() {
+        MovimientoKardex m = new CreadorDevolucion().registrar(martillo, 3, "Anulación de B001-1", null);
+
+        assertEquals(TipoMovimiento.DEVOLUCION, m.getTipo());
+        assertEquals(3, m.getCantidad());
+        assertEquals(13, martillo.getStock());
+        assertNull(m.getNumeroDocumento());
+    }
 }

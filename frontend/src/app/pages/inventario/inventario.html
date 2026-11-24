@@ -130,7 +130,8 @@
               <span class="badge"
                     [class.text-bg-success]="m.tipo === 'ENTRADA'"
                     [class.text-bg-danger]="m.tipo === 'SALIDA'"
-                    [class.text-bg-primary]="m.tipo === 'AJUSTE'">{{ m.tipo }}</span>
+                    [class.text-bg-primary]="m.tipo === 'AJUSTE'"
+                    [class.text-bg-warning]="m.tipo === 'DEVOLUCION'">{{ m.tipo === 'DEVOLUCION' ? 'DEVOLUCIÓN' : m.tipo }}</span>
             </td>
             <td class="text-end fw-semibold" [class.text-success]="m.cantidad > 0" [class.text-danger]="m.cantidad < 0">
               {{ m.cantidad > 0 ? '+' : '' }}{{ m.cantidad }}
