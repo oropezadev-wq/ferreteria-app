@@ -20,7 +20,9 @@ import {
   VentaRequest,
 } from '../models/modelos';
 
-export const API = 'http://localhost:8081/api';
+// Ruta relativa: en desarrollo la redirige proxy.conf.json (4200 -> 8081); en la versión portable
+// la página y la API salen del mismo servidor.
+export const API = '/api';
 
 /** Único punto de la vista que habla con la capa de negocio (API REST). */
 @Injectable({ providedIn: 'root' })

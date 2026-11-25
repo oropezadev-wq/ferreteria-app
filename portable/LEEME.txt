@@ -1,0 +1,29 @@
+﻿SISTEMA WEB DE VENTAS E INVENTARIO - FERRETERÍA
+Versión lista para usar en Windows 10 u 11
+
+CÓMO ABRIRLO
+1. Descomprima el archivo .zip en cualquier carpeta (por ejemplo, el Escritorio).
+2. Haga doble clic en iniciar.bat.
+3. En unos segundos se abre el navegador en http://localhost:8081
+
+No hace falta instalar Java, Node.js ni PostgreSQL: todo viene incluido.
+Si Docker Desktop está abierto, la base de datos es PostgreSQL 16; si no, se usa una base H2
+que se guarda en la carpeta data. El sistema funciona igual con cualquiera de las dos.
+
+USUARIOS DE PRUEBA
+  Administrador: admin / admin123
+  Vendedor:      vendedor / vendedor123
+  Catálogo público (sin iniciar sesión): http://localhost:8081/catalogo
+  Documentación de la API (Swagger): http://localhost:8081/swagger-ui/index.html
+
+PARA DETENERLO
+Cierre la ventana negra "Ferreteria - servidor".
+
+QUÉ HAY EN LA CARPETA
+  app\ferreteria.jar   Capa de negocio y datos (Spring Boot, API REST, JPA)
+  web\                 Capa de vista (Angular, ya compilada)
+  runtime\             Java 21 incluido
+  compose.yaml         PostgreSQL 16 con Docker
+  iniciar.bat          Inicia todo
+
+El código fuente completo está en el repositorio de GitHub (carpetas backend y frontend).
