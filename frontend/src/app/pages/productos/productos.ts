@@ -1,14 +1,15 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { Categoria, Producto } from '../../models/modelos';
 import { ApiService, mensajeDeError } from '../../services/api.service';
+import { estiloCategoria } from '../../services/categorias';
 
 @Component({
   selector: 'app-productos',
-  imports: [CurrencyPipe, FormsModule, ReactiveFormsModule],
+  imports: [CurrencyPipe, DecimalPipe, FormsModule, ReactiveFormsModule],
   templateUrl: './productos.html',
 })
 export class Productos implements OnInit {
@@ -21,6 +22,23 @@ export class Productos implements OnInit {
   protected readonly formularioVisible = signal(false);
   protected readonly editandoId = signal<number | null>(null);
   protected texto = '';
+  protected readonly estilo = estiloCategoria;
+  /** Filtros que se aplican en pantalla sobre la lista ya cargada. */
+  protected readonly filtroCategoria = signal<number | null>(null);
+  protected readonly soloStockBajo = signal(false);
+  protected readonly visibles = computed(() =>
+    this.productos().filter(
+      (p) =>
+        (this.filtroCategoria() === null || p.categoriaId === this.filtroCategoria()) &&
+        (!this.soloStockBajo() || (p.stockBajo && p.activo)),
+    ),
+  );
+  protected readonly cantidadStockBajo = computed(() => this.productos().filter((p) => p.stockBajo && p.activo).length);
+
+  /** Margen sobre el precio de venta (lo que queda de cada sol vendido). */
+  margen(p: Producto): number | null {
+    return p.precioVenta > 0 ? ((p.precioVenta - p.precioCompra) / p.precioVenta) * 100 : null;
+  }
   protected nuevaCategoria = '';
 
   protected readonly form = inject(FormBuilder).group({

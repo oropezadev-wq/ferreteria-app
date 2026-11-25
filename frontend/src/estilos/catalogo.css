@@ -1,0 +1,339 @@
+/*
+ * Catálogo público: se comporta como la vitrina de una tienda.
+ * Cabecera clara con el buscador al centro, "pasillos" por categoría con su
+ * conteo y una vitrina que ocupa todo el ancho disponible.
+ */
+app-catalogo {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.tienda-ancho {
+  width: 100%;
+  max-width: 100rem;
+  margin: 0 auto;
+  padding-left: clamp(1rem, 3vw, 2.5rem);
+  padding-right: clamp(1rem, 3vw, 2.5rem);
+}
+
+/* Tonos por categoría (fondo suave + ícono con contraste AA). */
+.tono-acero { background: #e6edf3; color: #2f5677; }
+.tono-oliva { background: #ebf0e1; color: #4a6528; }
+.tono-ocre { background: #faf0d9; color: #8a5a00; }
+.tono-arcilla { background: #f8e6dc; color: #a2401a; }
+.tono-agua { background: #dff0ee; color: #23625c; }
+.tono-neutro { background: #ebe9e3; color: var(--color-texto); }
+
+/* ---------- Cabecera ---------- */
+.tienda-cabecera {
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+.tienda-cabecera-fila {
+  display: flex;
+  align-items: center;
+  gap: 1rem 2rem;
+  min-height: 4.5rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.tienda-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-texto);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.marca-sello {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: var(--color-marca);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.tienda-nombre {
+  display: block;
+  font-family: var(--f-titulo);
+  font-stretch: 90%;
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.tienda-lema {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--color-texto-sec);
+}
+
+.tienda-buscador {
+  flex: 1;
+  max-width: 44rem;
+  margin: 0 auto;
+  display: flex;
+  position: relative;
+}
+
+.tienda-buscador > .bi {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-texto-ter);
+  pointer-events: none;
+}
+
+.tienda-buscador .form-control {
+  min-height: 3rem;
+  padding-left: 2.75rem;
+  border-radius: var(--radio-control) 0 0 var(--radio-control);
+  background: var(--color-hundido);
+  font-size: 1rem;
+}
+
+.tienda-buscador .form-control:focus { background: #fff; }
+
+.tienda-buscador .btn {
+  border-radius: 0 var(--radio-control) var(--radio-control) 0;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.tienda-personal { flex-shrink: 0; }
+
+@media (max-width: 767.98px) {
+  .tienda-cabecera-fila { flex-wrap: wrap; gap: 0.75rem; }
+  .tienda-personal { margin-left: auto; }
+  .tienda-buscador { order: 3; flex-basis: 100%; max-width: none; }
+  .tienda-buscador .btn { padding-left: 1rem; padding-right: 1rem; }
+  .tienda-cabecera { position: static; }
+}
+
+/* ---------- Pasillos (categorías) ---------- */
+.tienda-pasillos {
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.pasillos-fila {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+}
+
+.pasillo {
+  flex: 1 0 auto;
+  min-width: 12rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem 0.625rem 0.625rem;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-tarjeta);
+  text-align: left;
+  color: var(--color-texto);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.pasillo:hover { border-color: var(--color-borde-fuerte); background: var(--color-hundido); }
+
+.pasillo.activo {
+  border-color: var(--color-marca);
+  background: var(--color-marca-suave);
+  box-shadow: inset 0 0 0 1px var(--color-marca);
+}
+
+.pasillo-icono {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.pasillo-nombre {
+  display: block;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pasillo-cuenta {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--color-texto-sec);
+}
+
+@media (max-width: 575.98px) {
+  .pasillo { min-width: auto; flex: 0 0 auto; }
+  .pasillo-icono { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
+}
+
+/* ---------- Resultados ---------- */
+.tienda-contenido {
+  flex: 1;
+  padding-top: 1.75rem;
+  padding-bottom: 3rem;
+}
+
+.resultados-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.resultados-titulo {
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  font-weight: 800;
+  margin: 0;
+}
+
+.resultados-detalle {
+  margin: 0.25rem 0 0;
+  color: var(--color-texto-sec);
+}
+
+.resultados-orden {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-texto-sec);
+}
+
+.resultados-orden .form-select { width: auto; min-width: 12rem; }
+
+/* ---------- Vitrina ---------- */
+.vitrina {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr));
+  gap: 1.25rem;
+}
+
+.vitrina-vacia { grid-column: 1 / -1; }
+
+.producto {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-tarjeta);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.producto:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-borde-fuerte);
+  box-shadow: 0 8px 20px rgb(24 33 45 / 8%);
+}
+
+/* La "foto" del producto es el ícono de su rubro sobre una trama suave. */
+.producto-imagen {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.25rem;
+  background-image: repeating-linear-gradient(135deg, rgb(255 255 255 / 0%) 0 14px, rgb(255 255 255 / 35%) 14px 15px);
+}
+
+.producto-estado {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+}
+
+.producto-cuerpo {
+  padding: 1rem 1.125rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.producto-categoria {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-texto-sec);
+}
+
+.producto-nombre {
+  font-family: var(--f-texto);
+  font-stretch: 100%;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0.25rem 0 1rem;
+}
+
+.producto-precio {
+  margin-top: auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.producto-precio .cifra {
+  font-size: 1.625rem;
+  color: var(--color-texto);
+}
+
+.producto.agotado .producto-imagen { filter: grayscale(1); opacity: 0.55; }
+.producto.agotado .producto-precio .cifra { color: var(--color-texto-ter); text-decoration: line-through; }
+
+@media (max-width: 575.98px) {
+  .vitrina { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+  .producto-imagen { font-size: 2.25rem; }
+  .producto-cuerpo { padding: 0.75rem; }
+  .producto-nombre { font-size: 0.9375rem; }
+  .producto-precio .cifra { font-size: 1.25rem; }
+  .resultados-orden { width: 100%; }
+  .resultados-orden .form-select { flex: 1; min-width: 0; }
+}
+
+/* ---------- Pie ---------- */
+.tienda-pie {
+  background: var(--color-lateral);
+  color: #d5d9df;
+  font-size: 0.875rem;
+}
+
+.tienda-pie-fila {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.tienda-pie-enlace { color: #fff; }
+.tienda-pie-enlace:hover { color: var(--color-marca-claro); }

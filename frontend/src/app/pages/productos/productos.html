@@ -1,21 +1,29 @@
-<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-  <h1 class="h4 mb-0 me-auto">Productos</h1>
-  <button class="btn btn-marca" (click)="nuevo()"><i class="bi bi-plus-lg"></i> Nuevo producto</button>
+<div class="encabezado">
+  <div>
+    <h1>Productos</h1>
+    <p>Precios, categorías y stock mínimo de lo que se vende. El stock se mueve desde Inventario.</p>
+  </div>
+  <div class="acciones">
+    <button class="btn btn-marca" (click)="nuevo()"><i class="bi bi-plus-lg"></i> Nuevo producto</button>
+  </div>
 </div>
 
 @if (error()) {
-  <div class="alert alert-danger alert-dismissible">
-    {{ error() }}
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-octagon"></i><span>{{ error() }}</span>
     <button type="button" class="btn-close" (click)="error.set('')" aria-label="Cerrar"></button>
   </div>
 }
 @if (exito()) {
-  <div class="alert alert-success py-2">{{ exito() }}</div>
+  <div class="alert alert-success" role="status"><i class="bi bi-check2-circle"></i><span>{{ exito() }}</span></div>
 }
 
 @if (formularioVisible()) {
-  <form class="tarjeta mb-3" [formGroup]="form" (ngSubmit)="guardar()">
-    <h2 class="h6 mb-3">{{ editandoId() ? 'Editar producto' : 'Nuevo producto' }}</h2>
+  <form class="tarjeta formulario-panel mb-3" [formGroup]="form" (ngSubmit)="guardar()">
+    <div class="tarjeta-titulo">
+      <h2>{{ editandoId() ? 'Editar producto' : 'Nuevo producto' }}</h2>
+      <button type="button" class="btn-close ms-auto" (click)="formularioVisible.set(false)" aria-label="Cerrar formulario"></button>
+    </div>
     <div class="row g-3">
       <div class="col-sm-4 col-lg-2">
         <label class="form-label" for="codigo">Código</label>
@@ -36,9 +44,9 @@
               <option [ngValue]="c.id">{{ c.nombre }}</option>
             }
           </select>
-          <input class="form-control" placeholder="Nueva categoría" [(ngModel)]="nuevaCategoria"
+          <input class="form-control" placeholder="Nueva categoría" aria-label="Nueva categoría" [(ngModel)]="nuevaCategoria"
                  [ngModelOptions]="{ standalone: true }">
-          <button class="btn btn-outline-secondary" type="button" (click)="agregarCategoria()" title="Agregar categoría">
+          <button class="btn btn-suave" type="button" (click)="agregarCategoria()" title="Agregar categoría" aria-label="Agregar categoría">
             <i class="bi bi-plus"></i>
           </button>
         </div>
@@ -61,54 +69,84 @@
                [class.is-invalid]="invalido('stockMinimo')">
         <div class="invalid-feedback">Mayor o igual a 0.</div>
       </div>
-      <div class="col-12 col-lg-6 d-flex align-items-end gap-2">
+      <div class="col-12 col-lg-6 d-flex align-items-end gap-2 flex-wrap">
         <button class="btn btn-marca" type="submit">Guardar</button>
-        <button class="btn btn-outline-secondary" type="button" (click)="formularioVisible.set(false)">Cancelar</button>
-        <span class="text-muted small ms-2">El stock se modifica desde Inventario.</span>
+        <button class="btn btn-suave" type="button" (click)="formularioVisible.set(false)">Cancelar</button>
+        <span class="texto-sec small ms-lg-2">El stock se modifica desde Inventario.</span>
       </div>
     </div>
   </form>
 }
 
-<div class="tarjeta">
-  <form class="input-group mb-3" (ngSubmit)="buscar()">
-    <input class="form-control" placeholder="Buscar por código o descripción" aria-label="Buscar por código o descripción" name="texto" [(ngModel)]="texto">
-    <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i> Buscar</button>
-  </form>
+<section class="tarjeta p-0">
+  <div class="barra-filtros">
+    <form class="input-icono flex-grow-1" (ngSubmit)="buscar()" role="search">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <input class="form-control" placeholder="Buscar por código o descripción y presione Enter"
+             aria-label="Buscar por código o descripción" name="texto" [(ngModel)]="texto">
+    </form>
+    <select class="form-select filtro-select" aria-label="Filtrar por categoría"
+            [ngModel]="filtroCategoria()" (ngModelChange)="filtroCategoria.set($event)">
+      <option [ngValue]="null">Todas las categorías</option>
+      @for (c of categorias(); track c.id) {
+        <option [ngValue]="c.id">{{ c.nombre }}</option>
+      }
+    </select>
+    <input type="checkbox" class="btn-check" id="solo-bajo" [ngModel]="soloStockBajo()" (ngModelChange)="soloStockBajo.set($event)">
+    <label class="btn btn-suave text-nowrap filtro-bajo" for="solo-bajo">
+      <i class="bi bi-exclamation-triangle"></i> Stock bajo <span class="pill pill-error pill-sin-punto ms-1">{{ cantidadStockBajo() }}</span>
+    </label>
+  </div>
+  <div class="barra-conteo">{{ visibles().length }} de {{ productos().length }} productos</div>
 
   <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
+    <table class="table table-hover align-middle tabla-plana">
       <thead>
         <tr>
-          <th>Código</th><th>Descripción</th><th>Categoría</th>
-          <th class="text-end">P. venta</th><th class="text-end">Stock</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th>
+          <th>Producto</th><th class="d-none d-lg-table-cell">Categoría</th>
+          <th class="text-end">P. venta</th><th class="text-end d-none d-md-table-cell">Margen</th>
+          <th class="text-end">Stock</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th>
         </tr>
       </thead>
       <tbody>
-        @for (p of productos(); track p.id) {
-          <tr [class.fila-stock-bajo]="p.stockBajo && p.activo" [class.text-muted]="!p.activo">
-            <td class="text-nowrap">{{ p.codigo }}</td>
-            <td>{{ p.descripcion }}</td>
-            <td>{{ p.categoriaNombre }}</td>
-            <td class="text-end">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
-            <td class="text-end fw-semibold">{{ p.stock }} <span class="text-muted fw-normal small">/ mín. {{ p.stockMinimo }}</span></td>
+        @for (p of visibles(); track p.id) {
+          <tr [class.fila-stock-bajo]="p.stockBajo && p.activo" [class.fila-inactiva]="!p.activo">
             <td>
-              <span class="badge" [class.text-bg-success]="p.activo" [class.text-bg-secondary]="!p.activo">
-                {{ p.activo ? 'Activo' : 'Inactivo' }}
-              </span>
+              <div class="d-flex align-items-center gap-3">
+                <span class="icono-cat {{ estilo(p.categoriaNombre).tono }}" aria-hidden="true"><i class="bi {{ estilo(p.categoriaNombre).icono }}"></i></span>
+                <span><span class="celda-principal">{{ p.descripcion }}</span><span class="celda-sub">{{ p.codigo }}</span></span>
+              </div>
+            </td>
+            <td class="texto-sec d-none d-lg-table-cell">{{ p.categoriaNombre }}</td>
+            <td class="text-end fw-semibold">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
+            <td class="text-end d-none d-md-table-cell texto-sec">
+              @if (margen(p) !== null) { {{ margen(p) | number: '1.0-0' }} % }
+            </td>
+            <td class="text-end">
+              <span class="fw-semibold" [class.text-danger]="p.stockBajo && p.activo">{{ p.stock }}</span>
+              <span class="celda-sub">mín. {{ p.stockMinimo }}</span>
+            </td>
+            <td>
+              @if (!p.activo) {
+                <span class="pill pill-neutro">Inactivo</span>
+              } @else if (p.stockBajo) {
+                <span class="pill pill-error">Reponer</span>
+              } @else {
+                <span class="pill pill-ok">Activo</span>
+              }
             </td>
             <td class="text-end text-nowrap">
-              <button class="btn btn-sm btn-outline-secondary me-1" (click)="editar(p)" title="Editar" aria-label="Editar"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm" [class.btn-outline-danger]="p.activo" [class.btn-outline-success]="!p.activo"
+              <button class="btn btn-sm btn-suave btn-icono me-1" (click)="editar(p)" title="Editar" aria-label="Editar"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-icono" [class.btn-peligro]="p.activo" [class.btn-suave]="!p.activo"
                       (click)="cambiarEstado(p)" [title]="p.activo ? 'Desactivar' : 'Activar'" [attr.aria-label]="p.activo ? 'Desactivar' : 'Activar'">
                 <i class="bi" [class.bi-slash-circle]="p.activo" [class.bi-check-circle]="!p.activo"></i>
               </button>
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="7" class="vacio"><i class="bi bi-box-seam"></i>No se encontraron productos.</td></tr>
+          <tr><td colspan="7"><div class="vacio"><i class="bi bi-box-seam"></i>No se encontraron productos.</div></td></tr>
         }
       </tbody>
     </table>
   </div>
-</div>
+</section>

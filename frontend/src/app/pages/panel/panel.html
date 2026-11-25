@@ -1,79 +1,93 @@
-<h1 class="h4 mb-3">Panel principal</h1>
+<div class="encabezado">
+  <div>
+    <h1>Panel principal</h1>
+    <p>Hola, {{ auth.usuario()?.nombre }}. Así va la tienda hoy.</p>
+  </div>
+</div>
 
 @if (error()) {
-  <div class="alert alert-danger">{{ error() }}</div>
+  <div class="alert alert-danger"><i class="bi bi-exclamation-octagon"></i>{{ error() }}</div>
 }
 
-<div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta h-100">
-      <div class="etiqueta">Productos activos</div>
-      <div class="cifra">{{ resumen()?.productosActivos ?? '—' }}</div>
+<div class="panel-rejilla">
+  <section class="tarjeta panel-hoy" aria-labelledby="titulo-hoy">
+    <div class="sobretitulo" id="titulo-hoy">Ventas del día <span class="text-lowercase">(sin anuladas)</span></div>
+    <div class="cifra panel-hoy-monto">{{ (resumen()?.ventasHoy ?? 0) | currency: 'PEN' : 'S/ ' }}</div>
+    <div class="texto-sec">{{ numeroVentas() }} {{ numeroVentas() === 1 ? 'venta registrada' : 'ventas registradas' }}</div>
+
+    <div class="panel-caja">
+      <span class="texto-sec">Mi caja</span>
+      @if (cajaAbierta()) {
+        <span class="pill pill-ok">Abierta</span>
+      } @else {
+        <span class="pill pill-neutro">Cerrada</span>
+        <a routerLink="/caja" class="ms-auto small fw-semibold">Abrir caja <i class="bi bi-arrow-right"></i></a>
+      }
     </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta tarjeta-alerta h-100">
-      <div class="etiqueta">Con stock bajo</div>
-      <div class="cifra text-danger">{{ resumen()?.productosStockBajo ?? '—' }}</div>
+
+    <a routerLink="/ventas" class="btn btn-marca btn-lg w-100 mt-auto">
+      <i class="bi bi-cart3 me-1"></i> Ir a Ventas
+    </a>
+  </section>
+
+  <div class="panel-kpis">
+    <div class="tarjeta kpi">
+      <span class="sobretitulo">Productos activos</span>
+      <span class="cifra">{{ resumen()?.productosActivos ?? '—' }}</span>
+      <span class="nota">En el catálogo y a la venta</span>
     </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta h-100">
-      <div class="etiqueta">Valor del inventario</div>
-      <div class="cifra">{{ (resumen()?.valorInventario ?? 0) | currency: 'PEN' : 'S/ ' }}</div>
+    <div class="tarjeta kpi" [class.kpi-alerta]="(resumen()?.productosStockBajo ?? 0) > 0">
+      <span class="sobretitulo">Con stock bajo</span>
+      <span class="cifra">{{ resumen()?.productosStockBajo ?? '—' }}</span>
+      <span class="nota">Por debajo de su mínimo</span>
     </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta h-100">
-      <div class="etiqueta">Movimientos de hoy</div>
-      <div class="cifra">{{ resumen()?.movimientosHoy ?? '—' }}</div>
+    <div class="tarjeta kpi">
+      <span class="sobretitulo">Valor del inventario</span>
+      <span class="cifra">{{ (resumen()?.valorInventario ?? 0) | currency: 'PEN' : 'S/ ' }}</span>
+      <span class="nota">Stock por precio de compra</span>
+    </div>
+    <div class="tarjeta kpi">
+      <span class="sobretitulo">Movimientos de hoy</span>
+      <span class="cifra">{{ resumen()?.movimientosHoy ?? '—' }}</span>
+      <span class="nota">Registrados hoy en el kardex</span>
     </div>
   </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-lg-7">
-    <div class="tarjeta">
-      <h2 class="h6 mb-3"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Productos por reponer</h2>
-      @if (alertas().length === 0) {
-        <p class="vacio mb-0"><i class="bi bi-check2-circle"></i>No hay productos por debajo de su stock mínimo.</p>
-      } @else {
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <thead><tr><th>Código</th><th>Producto</th><th class="text-end">Stock</th><th class="text-end">Mínimo</th></tr></thead>
-            <tbody>
-              @for (p of alertas(); track p.id) {
-                <tr class="fila-stock-bajo">
-                  <td class="text-nowrap">{{ p.codigo }}</td>
-                  <td>{{ p.descripcion }}</td>
-                  <td class="text-end fw-bold text-danger">{{ p.stock }}</td>
-                  <td class="text-end">{{ p.stockMinimo }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        @if (auth.esAdministrador()) {
-          <a routerLink="/inventario" class="btn btn-sm btn-marca mt-3">Registrar entrada de mercadería</a>
-        }
-      }
-    </div>
+<section class="tarjeta mt-3" aria-labelledby="titulo-reponer">
+  <div class="tarjeta-titulo">
+    <i class="bi bi-exclamation-triangle text-danger" aria-hidden="true"></i>
+    <h2 id="titulo-reponer">Productos por reponer</h2>
+    @if (alertas().length > 0) {
+      <span class="pill pill-error ms-1">{{ alertas().length }}</span>
+    }
+    @if (auth.esAdministrador() && alertas().length > 0) {
+      <a routerLink="/inventario" class="btn btn-sm btn-outline-marca ms-auto">
+        <i class="bi bi-box-arrow-in-down"></i> Registrar entrada de mercadería
+      </a>
+    }
   </div>
-  <div class="col-lg-5">
-    <div class="tarjeta">
-      <h2 class="h6 mb-3"><i class="bi bi-cash-coin me-1"></i>Caja y ventas del día</h2>
-      <ul class="list-unstyled mb-0">
-        <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-          <span>Mi caja</span>
-          @if (cajaAbierta()) {
-            <span class="badge text-bg-success">Abierta</span>
-          } @else {
-            <a routerLink="/caja" class="btn btn-sm btn-outline-marca py-0">Cerrada · abrir</a>
+  @if (alertas().length === 0) {
+    <div class="vacio"><i class="bi bi-check2-circle"></i>No hay productos por debajo de su stock mínimo.</div>
+  } @else {
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Producto</th><th class="col-nivel">Nivel de stock</th><th class="text-end">Stock</th><th class="text-end">Mínimo</th></tr></thead>
+        <tbody>
+          @for (p of alertas(); track p.id) {
+            <tr>
+              <td><span class="celda-principal">{{ p.descripcion }}</span><span class="celda-sub">{{ p.codigo }}</span></td>
+              <td class="col-nivel">
+                <div class="nivel" role="img" [attr.aria-label]="p.stock + ' de ' + p.stockMinimo">
+                  <span [style.width.%]="p.stockMinimo ? (p.stock / p.stockMinimo) * 100 : 0"></span>
+                </div>
+              </td>
+              <td class="text-end fw-bold text-danger">{{ p.stock }}</td>
+              <td class="text-end texto-sec">{{ p.stockMinimo }}</td>
+            </tr>
           }
-        </li>
-        <li class="d-flex justify-content-between py-2 border-bottom"><span>Ventas del día (sin anuladas)</span><strong>{{ (resumen()?.ventasHoy ?? 0) | currency: 'PEN' : 'S/ ' }}</strong></li>
-        <li class="d-flex justify-content-between pt-2"><span>Número de ventas</span><strong>{{ numeroVentas() }}</strong></li>
-      </ul>
+        </tbody>
+      </table>
     </div>
-  </div>
-</div>
+  }
+</section>

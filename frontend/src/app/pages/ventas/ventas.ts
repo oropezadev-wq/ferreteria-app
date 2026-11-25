@@ -33,6 +33,9 @@ export class Ventas {
   protected readonly error = signal('');
   protected readonly enviando = signal(false);
   protected readonly ultimaVenta = signal<Venta | null>(null);
+  /** Texto buscado que no trajo resultados (para avisarlo bajo el buscador). */
+  protected readonly sinResultados = signal('');
+  protected readonly unidades = computed(() => this.lineas().reduce((suma, l) => suma + l.cantidad, 0));
 
   // Los precios ya incluyen IGV: se separa la base imponible del impuesto.
   protected readonly total = computed(() =>
@@ -47,6 +50,7 @@ export class Ventas {
     this.api.buscarProductos(this.texto, true).subscribe({
       next: (lista) => {
         this.error.set('');
+        this.sinResultados.set(lista.length === 0 ? this.texto.trim() : '');
         this.resultados.set(lista);
         if (lista.length === 1) {
           this.agregar(lista[0]);

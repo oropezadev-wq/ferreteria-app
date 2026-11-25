@@ -1,54 +1,156 @@
+/* Armazón: menú lateral oscuro fijo y contenido con barra superior. */
+.armazon {
+  display: flex;
+  min-height: 100vh;
+}
+
 .lateral {
-  width: 240px;
+  width: 16rem;
   flex-shrink: 0;
   background: var(--color-lateral);
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 0.875rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
-.marca .bi {
-  color: #fb923c;
+.lateral-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.5rem 1.5rem;
+  color: #fff;
+  text-decoration: none;
 }
 
-.marca-sub {
+.lateral-nombre {
+  display: block;
+  font-family: var(--f-titulo);
+  font-stretch: 90%;
+  font-weight: 800;
+  font-size: 1.1875rem;
+  line-height: 1.1;
+}
+
+.lateral-lema {
+  display: block;
   font-size: 0.75rem;
   color: #9ca3af;
 }
 
+.lateral-grupo + .lateral-grupo {
+  margin-top: 1.25rem;
+}
+
+.lateral-titulo {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8b95a3;
+  padding: 0 0.75rem 0.5rem;
+}
+
 .nav-link {
-  color: #d1d5db;
-  border-radius: 0.375rem;
-  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #cbd2db;
+  border-radius: var(--radio-control);
+  padding: 0.5625rem 0.75rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-link .bi {
+  font-size: 1.0625rem;
+  color: #8b95a3;
 }
 
 .nav-link:hover {
   color: #fff;
-  background: rgb(255 255 255 / 8%);
+  background: var(--color-lateral-2);
 }
 
 .nav-link.activo {
   color: #fff;
-  background: var(--color-marca);
+  background: var(--color-lateral-2);
+}
+
+.nav-link.activo .bi {
+  color: var(--color-marca-claro);
+}
+
+/* Marca de la opción activa: indica dónde está la persona sin depender solo del color de fondo. */
+.nav-link.activo::before {
+  content: '';
+  position: absolute;
+  left: -0.875rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-marca-claro);
+}
+
+.lateral-pie {
+  margin-top: auto;
+  padding: 0.75rem;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  text-decoration: none;
+  border-top: 1px solid #2c3746;
+}
+
+.lateral-pie:hover {
+  color: #fff;
 }
 
 .contenido {
+  flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-/* La barra superior queda visible al bajar en pantallas largas (Ventas, Kardex). */
 .barra-superior {
   position: sticky;
   top: 0;
   z-index: 1020;
-  min-height: 3.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.75rem;
+  padding: 0.5rem clamp(1rem, 2.5vw, 2rem);
+  background: rgb(244 243 239 / 92%);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--color-borde);
 }
 
-.btn-menu {
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
+.barra-fecha {
+  font-size: 0.875rem;
+  color: var(--color-texto-sec);
 }
 
-/* En tabletas y celulares el menú se oculta y se abre con el botón. */
-@media (max-width: 767.98px) {
+.barra-usuario {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.pagina {
+  padding: clamp(1rem, 2.5vw, 2rem);
+  width: 100%;
+  max-width: 100rem;
+}
+
+/* En tabletas y celulares el menú se abre sobre el contenido. */
+@media (max-width: 991.98px) {
   .lateral {
     position: fixed;
     inset: 0 auto 0 0;
@@ -59,23 +161,13 @@
 
   .lateral.abierto {
     transform: none;
+    box-shadow: var(--sombra-flotante);
   }
 
-  /* Oscurece el contenido detrás del menú; un toque fuera lo cierra. */
   .fondo-menu {
     position: fixed;
     inset: 0;
     z-index: 1030;
-    background: rgb(17 24 39 / 50%);
-  }
-}
-
-/* En escritorio el menú acompaña al bajar por pantallas largas. */
-@media (min-width: 768px) {
-  .lateral {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
+    background: rgb(24 33 45 / 50%);
   }
 }

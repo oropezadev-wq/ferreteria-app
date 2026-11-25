@@ -1,98 +1,142 @@
-<h1 class="h4 mb-3">Reportes</h1>
+<div class="encabezado">
+  <div>
+    <h1>Reportes</h1>
+    <p>Ventas, utilidad y rotación del periodo; desde aquí también se anulan comprobantes.</p>
+  </div>
+</div>
 
-<form class="tarjeta d-flex flex-wrap align-items-end gap-2 mb-3" (ngSubmit)="consultar()">
-  <div>
-    <label class="form-label small fw-semibold" for="desde">Desde</label>
-    <input id="desde" type="date" class="form-control" name="desde" [(ngModel)]="desde">
+<form class="tarjeta filtros-periodo mb-3" (ngSubmit)="consultar()">
+  <div class="filtro-rapido" role="group" aria-label="Periodos rápidos">
+    <button type="button" class="btn btn-suave btn-sm" (click)="periodo(0)">Hoy</button>
+    <button type="button" class="btn btn-suave btn-sm" (click)="periodo(6)">Últimos 7 días</button>
+    <button type="button" class="btn btn-suave btn-sm" (click)="periodo('mes')">Este mes</button>
   </div>
-  <div>
-    <label class="form-label small fw-semibold" for="hasta">Hasta</label>
-    <input id="hasta" type="date" class="form-control" name="hasta" [(ngModel)]="hasta">
+  <div class="filtro-fechas">
+    <div>
+      <label class="form-label" for="desde">Desde</label>
+      <input id="desde" type="date" class="form-control" name="desde" [(ngModel)]="desde">
+    </div>
+    <div>
+      <label class="form-label" for="hasta">Hasta</label>
+      <input id="hasta" type="date" class="form-control" name="hasta" [(ngModel)]="hasta">
+    </div>
+    <button class="btn btn-marca" type="submit"><i class="bi bi-arrow-repeat"></i> Consultar</button>
   </div>
-  <button class="btn btn-marca" type="submit">Consultar</button>
 </form>
 
 @if (error()) {
-  <div class="alert alert-danger py-2">{{ error() }}</div>
+  <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-octagon"></i><span>{{ error() }}</span></div>
 }
 @if (mensaje()) {
-  <div class="alert alert-success py-2">{{ mensaje() }}</div>
+  <div class="alert alert-success" role="status"><i class="bi bi-check2-circle"></i><span>{{ mensaje() }}</span></div>
 }
 
 @if (reporte(); as r) {
-  <div class="row g-3 mb-3">
-    <div class="col-6 col-lg-3"><div class="tarjeta h-100"><div class="etiqueta">Ventas ({{ r.cantidadVentas }})</div><div class="cifra">{{ r.total | currency: 'PEN' : 'S/ ' }}</div></div></div>
-    <div class="col-6 col-lg-3"><div class="tarjeta h-100"><div class="etiqueta">Costo de lo vendido</div><div class="cifra">{{ r.costo | currency: 'PEN' : 'S/ ' }}</div></div></div>
-    <div class="col-6 col-lg-3"><div class="tarjeta h-100"><div class="etiqueta">Utilidad bruta</div><div class="cifra text-success">{{ r.utilidad | currency: 'PEN' : 'S/ ' }}</div></div></div>
-    <div class="col-6 col-lg-3"><div class="tarjeta h-100"><div class="etiqueta">Ventas anuladas</div><div class="cifra text-danger">{{ r.cantidadAnuladas }}</div></div></div>
+  <div class="rejilla-kpi mb-3">
+    <div class="tarjeta kpi">
+      <span class="sobretitulo">Ventas ({{ r.cantidadVentas }})</span>
+      <span class="cifra">{{ r.total | currency: 'PEN' : 'S/ ' }}</span>
+    </div>
+    <div class="tarjeta kpi">
+      <span class="sobretitulo">Costo de lo vendido</span>
+      <span class="cifra">{{ r.costo | currency: 'PEN' : 'S/ ' }}</span>
+    </div>
+    <div class="tarjeta kpi">
+      <span class="sobretitulo">Utilidad bruta</span>
+      <span class="cifra text-success">{{ r.utilidad | currency: 'PEN' : 'S/ ' }}</span>
+    </div>
+    <div class="tarjeta kpi" [class.kpi-alerta]="r.cantidadAnuladas > 0">
+      <span class="sobretitulo">Ventas anuladas</span>
+      <span class="cifra">{{ r.cantidadAnuladas }}</span>
+    </div>
   </div>
 
-  <div class="row g-3 mb-3">
-    <div class="col-lg-6">
-      <div class="tarjeta h-100">
-        <h2 class="h6 mb-3">Ventas por día</h2>
-        @for (d of r.ventasPorDia; track d.fecha) {
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <span class="small" style="width: 3.5rem">{{ d.fecha | date: 'dd/MM' }}</span>
-            <div class="progress flex-grow-1" style="height: 1.25rem">
-              <div class="progress-bar" style="background: var(--color-marca)" [style.width.%]="(d.total / maximo()) * 100"></div>
+  <div class="reportes-rejilla mb-3">
+    <section class="tarjeta" aria-labelledby="titulo-dias">
+      <div class="tarjeta-titulo"><h2 id="titulo-dias">Ventas por día</h2></div>
+      @if (r.ventasPorDia.length === 0) {
+        <div class="vacio"><i class="bi bi-bar-chart"></i>No hay ventas en el periodo.</div>
+      } @else {
+        <div class="barras" role="list">
+          @for (d of r.ventasPorDia; track d.fecha) {
+            <div class="barra" role="listitem" [attr.aria-label]="(d.fecha | date: 'dd/MM') + ': ' + (d.total | currency: 'PEN' : 'S/ ')">
+              <span class="barra-valor">{{ d.total | currency: 'PEN' : 'S/ ' : '1.0-0' }}</span>
+              <span class="barra-columna"><span [style.height.%]="(d.total / maximo()) * 100"></span></span>
+              <span class="barra-fecha">{{ d.fecha | date: 'dd/MM' }}</span>
             </div>
-            <span class="small text-end text-nowrap" style="width: 6rem">{{ d.total | currency: 'PEN' : 'S/ ' }}</span>
-          </div>
-        } @empty {
-          <p class="vacio mb-0"><i class="bi bi-bar-chart"></i>No hay ventas en el periodo.</p>
-        }
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="tarjeta mb-3">
-        <h2 class="h6">Mayor rotación</h2>
-        @for (f of r.mayorRotacion; track f.producto) {
-          <div class="d-flex justify-content-between small border-bottom py-1"><span>{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
-        } @empty {
-          <p class="text-muted small mb-0">Sin ventas en el periodo.</p>
-        }
-      </div>
-      <div class="tarjeta">
-        <h2 class="h6">Menor rotación</h2>
-        @for (f of r.menorRotacion; track f.producto) {
-          <div class="d-flex justify-content-between small border-bottom py-1"><span>{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
-        }
-      </div>
-    </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="tarjeta" aria-labelledby="titulo-mayor">
+      <div class="tarjeta-titulo"><i class="bi bi-arrow-up-right text-success" aria-hidden="true"></i><h2 id="titulo-mayor">Mayor rotación</h2></div>
+      @for (f of r.mayorRotacion; track f.producto; let i = $index) {
+        <div class="ranking"><span class="ranking-pos">{{ i + 1 }}</span><span class="flex-grow-1">{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
+      } @empty {
+        <div class="vacio py-3">Sin ventas en el periodo.</div>
+      }
+    </section>
+
+    <section class="tarjeta" aria-labelledby="titulo-menor">
+      <div class="tarjeta-titulo"><i class="bi bi-arrow-down-right texto-sec" aria-hidden="true"></i><h2 id="titulo-menor">Menor rotación</h2></div>
+      @for (f of r.menorRotacion; track f.producto; let i = $index) {
+        <div class="ranking"><span class="ranking-pos">{{ i + 1 }}</span><span class="flex-grow-1">{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
+      }
+    </section>
   </div>
 }
 
-<div class="tarjeta">
-  <h2 class="h6 mb-3">Comprobantes emitidos</h2>
+<section class="tarjeta" aria-labelledby="titulo-comprobantes">
+  <div class="tarjeta-titulo">
+    <h2 id="titulo-comprobantes">Comprobantes emitidos</h2>
+    <span class="extra">{{ ventas().length }} en el periodo</span>
+  </div>
   <div class="table-responsive">
-    <table class="table table-sm align-middle mb-0">
+    <table class="table align-middle">
       <thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Pago</th><th class="text-end">Total</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
       <tbody>
         @for (v of ventas(); track v.id) {
-          <tr [class.text-muted]="v.estado === 'ANULADA'">
-            <td class="text-nowrap">{{ v.fecha | date: 'dd/MM HH:mm' }}</td>
-            <td class="text-nowrap fw-semibold">{{ v.comprobante }}</td>
+          <tr [class.fila-inactiva]="v.estado === 'ANULADA'">
+            <td class="text-nowrap texto-sec">{{ v.fecha | date: 'dd/MM HH:mm' }}</td>
+            <td class="text-nowrap celda-principal">{{ v.comprobante }}</td>
             <td>{{ v.clienteNombre ?? 'Cliente varios' }}</td>
-            <td>{{ v.metodoPago }}</td>
-            <td class="text-end">{{ v.total | currency: 'PEN' : 'S/ ' }}</td>
+            <td class="text-nowrap">{{ v.metodoPago === 'YAPE' ? 'Yape / Plin' : (v.metodoPago === 'TARJETA' ? 'Tarjeta' : 'Efectivo') }}</td>
+            <td class="text-end fw-semibold">{{ v.total | currency: 'PEN' : 'S/ ' }}</td>
             <td>
               @if (v.estado === 'ANULADA') {
-                <span class="badge text-bg-danger" [title]="v.motivoAnulacion ?? ''">Anulada</span>
+                <span class="pill pill-error" [title]="v.motivoAnulacion ?? ''">Anulada</span>
               } @else {
-                <span class="badge text-bg-success">Registrada</span>
+                <span class="pill pill-ok">Registrada</span>
               }
             </td>
             <td class="text-end">
               @if (v.estado === 'REGISTRADA') {
-                <button class="btn btn-sm btn-outline-danger" (click)="anular(v)">Anular</button>
+                <button class="btn btn-sm btn-peligro" (click)="anular(v)">Anular</button>
               }
             </td>
           </tr>
         } @empty {
-          <tr><td colspan="7" class="vacio"><i class="bi bi-receipt"></i>No hay comprobantes en el periodo.</td></tr>
+          <tr><td colspan="7"><div class="vacio"><i class="bi bi-receipt"></i>No hay comprobantes en el periodo.</div></td></tr>
         }
       </tbody>
     </table>
   </div>
-</div>
+</section>
+
+@if (porAnular(); as v) {
+  <div class="dialogo-fondo" (click)="cancelarAnulacion()">
+    <form class="dialogo" role="dialog" aria-modal="true" aria-labelledby="titulo-anular"
+          (click)="$event.stopPropagation()" (ngSubmit)="confirmarAnulacion()" (keydown.escape)="cancelarAnulacion()">
+      <h2 id="titulo-anular">Anular {{ v.comprobante }}</h2>
+      <p class="texto-sec">Total {{ v.total | currency: 'PEN' : 'S/ ' }}. Los productos vuelven al stock y la venta deja de sumar en la caja y en los reportes.</p>
+      <label class="form-label" for="motivo">Motivo de la anulación</label>
+      <input id="motivo" class="form-control mb-3" name="motivo" maxlength="200" required
+             placeholder="Ej.: error en el monto cobrado" [(ngModel)]="motivo">
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-suave" (click)="cancelarAnulacion()">Cancelar</button>
+        <button type="submit" class="btn btn-danger" [disabled]="!motivo.trim() || anulando()">Anular comprobante</button>
+      </div>
+    </form>
+  </div>
+}

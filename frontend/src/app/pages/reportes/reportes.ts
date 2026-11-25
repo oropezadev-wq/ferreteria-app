@@ -42,18 +42,51 @@ export class Reportes implements OnInit {
     });
   }
 
-  /** La anulación devuelve el stock y deja de sumar en el reporte y en la caja. */
+  /** Venta que se está por anular (abre el diálogo) y el motivo que se escribe en él. */
+  protected readonly porAnular = signal<Venta | null>(null);
+  protected motivo = '';
+  protected readonly anulando = signal(false);
+
+  /** Periodos rápidos: llenan las fechas y consultan. */
+  periodo(dias: number | 'mes'): void {
+    const hoy = new Date();
+    const desde = dias === 'mes' ? new Date(hoy.getFullYear(), hoy.getMonth(), 1) : new Date(Date.now() - dias * 24 * 60 * 60 * 1000);
+    this.desde = fechaIso(desde);
+    this.hasta = fechaIso(hoy);
+    this.consultar();
+  }
+
   anular(venta: Venta): void {
-    const motivo = prompt(`Motivo de la anulación de ${venta.comprobante}:`);
-    if (!motivo?.trim()) {
+    this.motivo = '';
+    this.porAnular.set(venta);
+    // El diálogo aparece después de este ciclo; ahí se pone el cursor en el motivo.
+    setTimeout(() => document.getElementById('motivo')?.focus());
+  }
+
+  cancelarAnulacion(): void {
+    this.porAnular.set(null);
+  }
+
+  /** La anulación devuelve el stock y deja de sumar en el reporte y en la caja. */
+  confirmarAnulacion(): void {
+    const venta = this.porAnular();
+    const motivo = this.motivo.trim();
+    if (!venta || !motivo) {
       return;
     }
-    this.api.anularVenta(venta.id, motivo.trim()).subscribe({
+    this.anulando.set(true);
+    this.api.anularVenta(venta.id, motivo).subscribe({
       next: (v) => {
+        this.anulando.set(false);
+        this.porAnular.set(null);
         this.mensaje.set(`Se anuló ${v.comprobante} y sus productos volvieron al stock.`);
         this.consultar();
       },
-      error: (e) => this.error.set(mensajeDeError(e)),
+      error: (e) => {
+        this.anulando.set(false);
+        this.porAnular.set(null);
+        this.error.set(mensajeDeError(e));
+      },
     });
   }
 }

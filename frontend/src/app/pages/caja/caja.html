@@ -1,58 +1,95 @@
-<h1 class="h4 mb-3">Caja</h1>
+<div class="encabezado">
+  <div>
+    <h1>Caja</h1>
+    <p>Abra el turno con el sencillo del día y ciérrelo contando el efectivo.</p>
+  </div>
+  <div class="acciones">
+    @if (turno()) {
+      <span class="pill pill-ok">Turno abierto</span>
+    } @else {
+      <span class="pill pill-neutro">Turno cerrado</span>
+    }
+  </div>
+</div>
 
 @if (error()) {
-  <div class="alert alert-danger py-2">{{ error() }}</div>
+  <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-octagon"></i><span>{{ error() }}</span></div>
 }
 
 @if (turno(); as t) {
-  <div class="row g-3">
-    <div class="col-lg-6">
-      <div class="tarjeta">
-        <h2 class="h6 mb-1">Turno actual <span class="badge text-bg-success ms-1">Abierto</span></h2>
-        <p class="small text-muted mb-3">Desde {{ t.fechaApertura | date: 'dd/MM/yyyy HH:mm' }}</p>
-        <ul class="list-unstyled mb-0">
-          <li class="d-flex justify-content-between py-1"><span>Monto de apertura</span><span>{{ t.montoApertura | currency: 'PEN' : 'S/ ' }}</span></li>
-          <li class="d-flex justify-content-between py-1"><span>Ventas en efectivo</span><span>{{ t.ventasEfectivo | currency: 'PEN' : 'S/ ' }}</span></li>
-          <li class="d-flex justify-content-between py-1"><span>Ventas con tarjeta</span><span>{{ t.ventasTarjeta | currency: 'PEN' : 'S/ ' }}</span></li>
-          <li class="d-flex justify-content-between py-1"><span>Ventas con Yape / Plin</span><span>{{ t.ventasYape | currency: 'PEN' : 'S/ ' }}</span></li>
-          <li class="d-flex justify-content-between pt-2 mt-1 border-top fw-bold fs-5"><span>Efectivo esperado</span><span>{{ t.montoEsperado | currency: 'PEN' : 'S/ ' }}</span></li>
-        </ul>
-        <p class="small text-muted mt-2 mb-0">Las ventas anuladas no se cuentan.</p>
+  <div class="caja-rejilla">
+    <section class="tarjeta" aria-labelledby="titulo-turno">
+      <div class="tarjeta-titulo">
+        <h2 id="titulo-turno">Turno actual</h2>
+        <span class="extra">Desde {{ t.fechaApertura | date: 'dd/MM/yyyy HH:mm' }}</span>
       </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="tarjeta">
-        <h2 class="h6 mb-3">Cerrar turno</h2>
-        <label class="form-label" for="contado">Efectivo contado (S/)</label>
-        <input id="contado" type="number" min="0" step="0.10" class="form-control mb-3"
-               [ngModel]="contado()" (ngModelChange)="contado.set($event)">
-        @if (diferencia() !== null) {
-          <div class="alert py-2 fw-semibold" role="status" [class.alert-success]="diferencia() === 0"
-               [class.alert-warning]="diferencia()! > 0" [class.alert-danger]="diferencia()! < 0">
-            @if (diferencia() === 0) { Caja cuadrada. }
-            @else if (diferencia()! > 0) { Sobrante de {{ diferencia() | currency: 'PEN' : 'S/ ' }} }
-            @else { Faltante de {{ -diferencia()! | currency: 'PEN' : 'S/ ' }} }
-          </div>
+
+      <div class="sobretitulo mb-1">En el cajón</div>
+      <ul class="lista-datos">
+        <li><span>Monto de apertura</span><span>{{ t.montoApertura | currency: 'PEN' : 'S/ ' }}</span></li>
+        <li><span>+ Ventas en efectivo</span><span>{{ t.ventasEfectivo | currency: 'PEN' : 'S/ ' }}</span></li>
+        <li class="total"><span>Efectivo esperado</span><span class="cifra fs-4">{{ t.montoEsperado | currency: 'PEN' : 'S/ ' }}</span></li>
+      </ul>
+
+      <div class="sobretitulo mt-4 mb-1">Fuera del cajón</div>
+      <ul class="lista-datos">
+        <li><span><i class="bi bi-credit-card me-2 texto-sec"></i>Ventas con tarjeta</span><span>{{ t.ventasTarjeta | currency: 'PEN' : 'S/ ' }}</span></li>
+        <li><span><i class="bi bi-phone me-2 texto-sec"></i>Ventas con Yape / Plin</span><span>{{ t.ventasYape | currency: 'PEN' : 'S/ ' }}</span></li>
+      </ul>
+      <p class="small texto-sec mt-3 mb-0"><i class="bi bi-info-circle"></i> Las ventas anuladas no se cuentan.</p>
+    </section>
+
+    <section class="tarjeta arqueo" aria-labelledby="titulo-cierre">
+      <div class="tarjeta-titulo"><h2 id="titulo-cierre">Cerrar turno</h2></div>
+      <label class="form-label" for="contado">Efectivo contado (S/)</label>
+      <input id="contado" type="number" min="0" step="0.10" class="form-control form-control-lg arqueo-input mb-3"
+             inputmode="decimal" placeholder="0.00" [ngModel]="contado()" (ngModelChange)="contado.set($event)">
+
+      <div class="arqueo-resultado" role="status"
+           [class.cuadra]="diferencia() === 0" [class.sobra]="diferencia() !== null && diferencia()! > 0"
+           [class.falta]="diferencia() !== null && diferencia()! < 0">
+        @if (diferencia() === null) {
+          <span class="texto-sec">Ingrese lo contado para ver si la caja cuadra.</span>
+        } @else if (diferencia() === 0) {
+          <i class="bi bi-check-circle-fill"></i><span><strong>Caja cuadrada.</strong></span>
+        } @else if (diferencia()! > 0) {
+          <i class="bi bi-arrow-up-circle-fill"></i><span><strong>Sobrante de {{ diferencia() | currency: 'PEN' : 'S/ ' }}</strong></span>
+        } @else {
+          <i class="bi bi-arrow-down-circle-fill"></i><span><strong>Faltante de {{ -diferencia()! | currency: 'PEN' : 'S/ ' }}</strong></span>
         }
-        <label class="form-label" for="obs">Observación (opcional)</label>
-        <input id="obs" class="form-control mb-3" maxlength="200" [(ngModel)]="observacion">
-        <button class="btn btn-marca" [disabled]="contado() === null" (click)="cerrar()">Confirmar cierre</button>
       </div>
-    </div>
+
+      <label class="form-label mt-3" for="obs">Observación <span class="fw-normal texto-sec">(opcional)</span></label>
+      <input id="obs" class="form-control mb-3" maxlength="200" placeholder="Ej.: motivo de la diferencia" [(ngModel)]="observacion">
+      <button class="btn btn-marca btn-lg w-100" [disabled]="contado() === null" (click)="cerrar()">
+        <i class="bi bi-lock"></i> Confirmar cierre
+      </button>
+    </section>
   </div>
 } @else {
-  @if (cerrado(); as c) {
-    <div class="alert alert-info" role="status" style="max-width: 420px">
-      Turno cerrado. Esperado {{ c.montoEsperado | currency: 'PEN' : 'S/ ' }},
-      contado {{ c.montoContado | currency: 'PEN' : 'S/ ' }},
-      diferencia {{ c.diferencia | currency: 'PEN' : 'S/ ' }}.
-    </div>
-  }
-  <div class="tarjeta" style="max-width: 420px">
-    <h2 class="h6 mb-3">Abrir turno <span class="badge text-bg-secondary ms-1">Cerrado</span></h2>
-    <label class="form-label" for="apertura">Monto de apertura (S/)</label>
-    <input id="apertura" type="number" min="0" class="form-control mb-3" [(ngModel)]="montoApertura">
-    <button class="btn btn-marca" (click)="abrir()">Abrir turno</button>
-    <p class="small text-muted mt-2 mb-0">Las ventas que registre con el turno abierto se suman a su caja.</p>
+  <div class="caja-rejilla">
+    <section class="tarjeta" aria-labelledby="titulo-abrir">
+      <div class="tarjeta-titulo"><h2 id="titulo-abrir">Abrir turno</h2></div>
+      <label class="form-label" for="apertura">Monto de apertura (S/)</label>
+      <input id="apertura" type="number" min="0" class="form-control form-control-lg mb-3" inputmode="decimal" [(ngModel)]="montoApertura">
+      <button class="btn btn-marca btn-lg w-100" (click)="abrir()"><i class="bi bi-unlock"></i> Abrir turno</button>
+      <p class="small texto-sec mt-3 mb-0">Las ventas que registre con el turno abierto se suman a su caja.</p>
+    </section>
+
+    @if (cerrado(); as c) {
+      <section class="tarjeta" aria-labelledby="titulo-cerrado">
+        <div class="tarjeta-titulo">
+          <i class="bi bi-check2-circle text-success" aria-hidden="true"></i>
+          <h2 id="titulo-cerrado">Turno cerrado</h2>
+        </div>
+        <ul class="lista-datos">
+          <li><span>Efectivo esperado</span><span>{{ c.montoEsperado | currency: 'PEN' : 'S/ ' }}</span></li>
+          <li><span>Efectivo contado</span><span>{{ c.montoContado | currency: 'PEN' : 'S/ ' }}</span></li>
+          <li class="total"><span>Diferencia</span>
+            <span class="cifra fs-4" [class.text-success]="c.diferencia === 0" [class.text-danger]="(c.diferencia ?? 0) < 0">{{ c.diferencia | currency: 'PEN' : 'S/ ' }}</span>
+          </li>
+        </ul>
+      </section>
+    }
   </div>
 }
