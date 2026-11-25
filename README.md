@@ -45,6 +45,17 @@ implementado: cada venta queda con el envío en estado *pendiente*.
 
 ## Cómo correrlo
 
+### Versión lista para usar (sin instalar nada)
+
+1. Descargar `Ferreteria-portable.zip` desde la sección **Releases** del repositorio y descomprimirlo.
+2. Doble clic en `iniciar.bat`. En unos segundos se abre el navegador en http://localhost:8081.
+
+Trae Java incluido y la vista de Angular ya compilada: la misma API de Spring Boot entrega la página,
+por eso todo funciona en un solo puerto. Si Docker Desktop está abierto usa PostgreSQL 16; si no, una
+base H2 en la carpeta `data`. Para armar el zip: `powershell -ExecutionPolicy Bypass -File scriptsrmar-version-portable.ps1`.
+
+### Para desarrollar (tres capas por separado)
+
 Requisitos: JDK 21, Node.js 20 o superior y PostgreSQL 16 (o Docker).
 
 1. **Base de datos.** Con Docker, desde la carpeta `backend`:

@@ -55,6 +55,8 @@ public class SeguridadConfig {
                         .requestMatchers("/api/ventas/**", "/api/clientes/**", "/api/caja/**", "/api/panel/**")
                         .authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").authenticated()
+                        // Página de Angular (solo la versión portable la sirve desde aquí); los datos siguen en /api.
+                        .requestMatchers(r -> !r.getRequestURI().startsWith("/api/")).permitAll()
                         .anyRequest().hasRole(ADMIN))
                 .oauth2ResourceServer(o -> o
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(rolesDelToken()))
