@@ -1,79 +1,227 @@
-<h1 class="h4 mb-3">Panel principal</h1>
-
 @if (error()) {
-  <div class="alert alert-danger">{{ error() }}</div>
+  <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-octagon"></i><span>{{ error() }}</span></div>
 }
 
-<div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta h-100">
-      <div class="text-muted small">Productos activos</div>
-      <div class="fs-3 fw-bold">{{ resumen()?.productosActivos ?? '—' }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta h-100">
-      <div class="text-muted small">Con stock bajo</div>
-      <div class="fs-3 fw-bold text-danger">{{ resumen()?.productosStockBajo ?? '—' }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta h-100">
-      <div class="text-muted small">Valor del inventario</div>
-      <div class="fs-3 fw-bold">{{ (resumen()?.valorInventario ?? 0) | currency: 'PEN' : 'S/ ' }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="tarjeta h-100">
-      <div class="text-muted small">Movimientos de hoy</div>
-      <div class="fs-3 fw-bold">{{ resumen()?.movimientosHoy ?? '—' }}</div>
-    </div>
-  </div>
-</div>
-
-<div class="row g-3">
-  <div class="col-lg-7">
-    <div class="tarjeta">
-      <h2 class="h6"><i class="bi bi-exclamation-triangle text-danger me-1"></i>Productos por reponer</h2>
-      @if (alertas().length === 0) {
-        <p class="text-muted mb-0">No hay productos por debajo de su stock mínimo.</p>
-      } @else {
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <thead><tr><th>Código</th><th>Producto</th><th class="text-end">Stock</th><th class="text-end">Mínimo</th></tr></thead>
-            <tbody>
-              @for (p of alertas(); track p.id) {
-                <tr class="fila-stock-bajo">
-                  <td>{{ p.codigo }}</td>
-                  <td>{{ p.descripcion }}</td>
-                  <td class="text-end fw-bold">{{ p.stock }}</td>
-                  <td class="text-end">{{ p.stockMinimo }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+@if (!auth.esAdministrador()) {
+  <!-- ===================== Vendedor: mostrador ===================== -->
+  <h1 class="visually-hidden">Panel principal</h1>
+  <div class="mostrador">
+    <div class="mostrador-principal">
+      <section class="tarjeta bloque-vender" aria-labelledby="t-vender">
+        <div class="tarjeta-titulo">
+          <h2 id="t-vender">Vender</h2>
+          <span class="extra">Escanee el código o escriba lo que pide el cliente.</span>
         </div>
-        @if (auth.esAdministrador()) {
-          <a routerLink="/inventario" class="btn btn-sm btn-marca mt-3">Registrar entrada de mercadería</a>
-        }
+        <form class="escaner" (ngSubmit)="vender(texto)" role="search">
+          <div class="input-icono flex-grow-1">
+            <i class="bi bi-upc-scan" aria-hidden="true"></i>
+            <input class="form-control" placeholder="Código o producto…" aria-label="Código o producto"
+                   name="texto" [(ngModel)]="texto" autocomplete="off">
+          </div>
+          <button class="btn btn-marca" type="submit"><i class="bi bi-plus-lg"></i> Nueva venta <span class="tecla">F2</span></button>
+        </form>
+      </section>
+
+      <section class="tarjeta estante-bloque" aria-labelledby="t-estante">
+        <div class="tarjeta-titulo">
+          <h2 id="t-estante">Estante</h2>
+          <span class="extra">Un toque abre la venta con ese producto. El código es el rótulo del anaquel.</span>
+        </div>
+        <div class="estante">
+          @for (p of productos(); track p.id) {
+            <button type="button" class="ficha-prod {{ estilo(p.categoriaNombre).tono }}" (click)="vender(p.codigo)">
+              <span class="ficha-cabeza"><span class="rot"><span>{{ p.codigo }}</span></span><i class="bi {{ icono(p.descripcion, p.categoriaNombre) }}" aria-hidden="true"></i></span>
+              <span class="ficha-nombre">{{ p.descripcion }}</span>
+              <span class="ficha-pie">
+                <span class="cifra">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</span>
+                <span class="ficha-stock" [class.critico]="nivel(p) === 'critico'" [class.bajo]="nivel(p) === 'bajo'">
+                  {{ p.stock === 0 ? 'Agotado' : (nivel(p) === 'ok' ? 'Stock ' + p.stock : 'Quedan ' + p.stock) }}
+                </span>
+              </span>
+            </button>
+          } @empty {
+            @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+              <div class="ficha-prod esqueleto" style="min-height: 8.5rem" aria-hidden="true"></div>
+            }
+          }
+        </div>
+      </section>
+
+      @if (alertas().length > 0) {
+        <section class="tarjeta quedan" aria-labelledby="t-quedan">
+          <h2 class="quedan-titulo" id="t-quedan"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Quedan pocos</h2>
+          @for (p of alertas(); track p.id) {
+            <span class="quedan-item {{ estilo(p.categoriaNombre).tono }}"><span class="rot"><span>{{ p.codigo }}</span></span>{{ p.descripcion }} · <b>{{ p.stock }}</b></span>
+          }
+        </section>
       }
     </div>
-  </div>
-  <div class="col-lg-5">
-    <div class="tarjeta">
-      <h2 class="h6"><i class="bi bi-cash-coin me-1"></i>Caja y ventas del día</h2>
-      <ul class="list-unstyled mb-0">
-        <li class="d-flex justify-content-between py-1">
-          <span>Mi caja</span>
-          @if (cajaAbierta()) {
-            <span class="badge text-bg-success">Abierta</span>
+
+    <aside class="mostrador-lateral">
+      <section class="tarjeta bloque-caja" aria-labelledby="t-caja">
+        <div class="tarjeta-titulo">
+          <h2 id="t-caja">Mi caja</h2>
+          @if (caja(); as t) {
+            <span class="pill pill-ok derecha">Abierta desde {{ t.fechaApertura | date: 'HH:mm' }}</span>
           } @else {
-            <a routerLink="/caja" class="badge text-bg-secondary text-decoration-none">Cerrada · abrir</a>
+            <span class="pill pill-neutro derecha">Cerrada</span>
           }
-        </li>
-        <li class="d-flex justify-content-between py-1"><span>Ventas del día (sin anuladas)</span><strong>{{ (resumen()?.ventasHoy ?? 0) | currency: 'PEN' : 'S/ ' }}</strong></li>
-        <li class="d-flex justify-content-between py-1"><span>Número de ventas</span><strong>{{ numeroVentas() }}</strong></li>
-      </ul>
-    </div>
+        </div>
+        <div class="cobrado">
+          <span class="sobretitulo">Cobrado hoy · {{ misVentas().length }} {{ misVentas().length === 1 ? 'venta' : 'ventas' }}</span>
+          <span class="cifra cobrado-monto">{{ cobrado() | currency: 'PEN' : 'S/ ' }}</span>
+        </div>
+        @for (m of porMetodo(); track m.clave) {
+          <div class="metodo-fila">
+            <span><i class="bi {{ m.icono }}" aria-hidden="true"></i> {{ m.texto }}</span>
+            <span class="nivel"><span [style.width.%]="m.parte" style="background: var(--tinta)"></span></span>
+            <b>{{ m.total | currency: 'PEN' : 'S/ ' }}</b>
+          </div>
+        }
+        @if (caja(); as t) {
+          <div class="cajon">
+            <span>En el cajón debe haber<small>apertura {{ t.montoApertura | currency: 'PEN' : 'S/ ' }} + efectivo</small></span>
+            <span class="cifra">{{ t.montoEsperado | currency: 'PEN' : 'S/ ' }}</span>
+          </div>
+          <a routerLink="/caja" class="btn btn-tinta w-100 mt-3"><i class="bi bi-lock"></i> Cerrar caja</a>
+        } @else {
+          <a routerLink="/caja" class="btn btn-marca w-100 mt-3"><i class="bi bi-unlock"></i> Abrir caja</a>
+        }
+      </section>
+
+      <section class="tarjeta ultimas" aria-labelledby="t-ultimas">
+        <div class="tarjeta-titulo">
+          <h2 id="t-ultimas">Mis últimas ventas</h2>
+          <span class="extra">hoy</span>
+        </div>
+        @for (v of misVentas().slice(0, 8); track v.id) {
+          <div class="venta-fila">
+            <span class="mono texto-sec">{{ v.fecha | date: 'HH:mm' }}</span>
+            <span class="venta-detalle"><b>{{ v.comprobante }}</b><span>{{ resumenVenta(v) }}</span></span>
+            <i class="bi {{ iconoMetodo(v.metodoPago) }} texto-sec" [attr.aria-label]="nombreMetodo(v.metodoPago)"></i>
+            <b class="cifra">{{ v.total | currency: 'PEN' : 'S/ ' }}</b>
+          </div>
+        } @empty {
+          <div class="vacio">
+            <strong>{{ cargando() ? 'Cargando…' : 'Todavía no hay ventas hoy.' }}</strong>
+            @if (!cargando()) {
+              <a routerLink="/ventas" class="btn btn-suave btn-sm"><i class="bi bi-upc-scan"></i> Ir a Ventas</a>
+            }
+          </div>
+        }
+      </section>
+    </aside>
   </div>
-</div>
+} @else {
+  <!-- ===================== Administrador ===================== -->
+  <div class="encabezado">
+    <div>
+      <h1>Panel principal</h1>
+      <p>Qué reponer, cómo va la semana y qué pasó hoy en la tienda.</p>
+    </div>
+    <dl class="cifras-cabecera">
+      <div><dt>Ventas de hoy</dt><dd class="cifra">{{ cobrado() | currency: 'PEN' : 'S/ ' }}</dd></div>
+      <div><dt>Productos activos</dt><dd class="cifra">{{ resumen()?.productosActivos ?? '—' }}</dd></div>
+      <div><dt>Valor del inventario</dt><dd class="cifra">{{ (resumen()?.valorInventario ?? 0) | currency: 'PEN' : 'S/ ' }}</dd></div>
+      <div><dt>Movimientos de hoy</dt><dd class="cifra">{{ resumen()?.movimientosHoy ?? '—' }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="tablero">
+    <section class="tarjeta zona-reponer" aria-labelledby="t-reponer">
+      <div class="tarjeta-titulo">
+        <h2 id="t-reponer">Por reponer</h2>
+        <span class="extra">{{ alertas().length }} productos bajo su mínimo</span>
+        <a routerLink="/inventario" class="btn btn-sm btn-outline-marca derecha"><i class="bi bi-box-arrow-in-down"></i> Registrar entrada de mercadería</a>
+      </div>
+      @for (g of reponer(); track g.nivel) {
+        <div class="grupo-reponer">
+          <div class="grupo-titulo"><span class="pill" [class.pill-error]="g.nivel === 'critico'" [class.pill-alerta]="g.nivel === 'bajo'">{{ g.titulo }} · {{ g.productos.length }}</span><span class="texto-sec small">{{ g.nota }}</span></div>
+          @for (p of g.productos; track p.id) {
+            <div class="reponer-fila {{ estilo(p.categoriaNombre).tono }}">
+              <span class="rot"><span>{{ p.codigo }}</span></span>
+              <span class="reponer-nombre"><b>{{ p.descripcion }}</b><span>Hay {{ p.stock }} · mínimo {{ p.stockMinimo }}</span></span>
+              <span class="nivel" [class.nivel-critico]="g.nivel === 'critico'" [class.nivel-bajo]="g.nivel === 'bajo'"><span [style.width.%]="cobertura(p)"></span></span>
+              <span class="reponer-falta"><b class="cifra">+{{ p.stockMinimo - p.stock }}</b><span>para el mínimo</span></span>
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="vacio"><i class="bi bi-check2-circle"></i><strong>Todo el stock está sobre su mínimo.</strong></div>
+      }
+      <p class="nota-pie">El faltante es lo que separa el stock de su mínimo, no una cantidad de compra sugerida.</p>
+    </section>
+
+    <section class="tarjeta zona-semana" aria-labelledby="t-semana">
+      <div class="tarjeta-titulo">
+        <h2 id="t-semana">Ventas de la semana</h2>
+        <span class="extra">últimos 7 días</span>
+      </div>
+      <div class="semana-cifras">
+        <div><span class="sobretitulo">Total</span><span class="cifra">{{ (semana()?.total ?? 0) | currency: 'PEN' : 'S/ ' }}</span></div>
+        <div><span class="sobretitulo">Ventas</span><span class="cifra">{{ semana()?.cantidadVentas ?? 0 }}</span></div>
+        @if (mejorDia(); as d) {
+          <div><span class="sobretitulo">Mejor día</span><span class="cifra">{{ d.nombre }} {{ d.dia }}</span></div>
+        }
+        @if (variacion() !== null) {
+          <div><span class="sobretitulo">vs. 7 días anteriores</span>
+            <span class="cifra" [class.text-success]="variacion()! >= 0" [class.text-danger]="variacion()! < 0">{{ variacion()! >= 0 ? '+' : '' }}{{ variacion() }} %</span></div>
+        }
+      </div>
+      <div class="barras-semana" role="list">
+        @for (d of dias(); track d.iso) {
+          <div class="barra-dia" role="listitem" [attr.aria-label]="d.nombre + ' ' + d.dia + ': ' + (d.total | currency: 'PEN' : 'S/ ')">
+            <span class="barra-valor">{{ d.total ? (d.total | currency: 'PEN' : 'S/ ' : '1.0-0') : '—' }}</span>
+            <span class="barra-columna"><span [class.hoy]="d.hoy" [style.height.%]="d.alto"></span></span>
+            <span class="barra-fecha" [class.fw-bold]="d.hoy">{{ d.nombre }} {{ d.dia }}</span>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="tarjeta zona-hoy" aria-labelledby="t-hoy">
+      <div class="tarjeta-titulo">
+        <h2 id="t-hoy">Cobrado hoy</h2>
+        <span class="extra">{{ misVentas().length }} ventas · todas las cajas</span>
+      </div>
+      <div class="barra-metodos" aria-hidden="true">
+        @for (m of porMetodo(); track m.clave) {
+          <span class="m-{{ m.clave.toLowerCase() }}" [style.width.%]="m.parte"></span>
+        }
+      </div>
+      <div class="metodos-leyenda">
+        @for (m of porMetodo(); track m.clave) {
+          <div><span class="muestra m-{{ m.clave.toLowerCase() }}"></span>{{ m.texto }}<b>{{ m.total | currency: 'PEN' : 'S/ ' }}</b></div>
+        }
+      </div>
+      <a routerLink="/caja" class="small">Ir a mi caja <i class="bi bi-arrow-right"></i></a>
+    </section>
+
+    <section class="tarjeta zona-rota" aria-labelledby="t-rota">
+      <div class="tarjeta-titulo"><h2 id="t-rota">Lo que más sale</h2><span class="extra">7 días</span></div>
+      @for (f of semana()?.mayorRotacion ?? []; track f.producto; let i = $index) {
+        <div class="rank"><span class="rank-n">{{ i + 1 }}</span><span class="flex-grow-1">{{ f.producto }}</span><b>{{ f.unidades }} u.</b></div>
+      } @empty {
+        <div class="vacio">Sin ventas en los últimos 7 días.</div>
+      }
+      <div class="tarjeta-titulo mt-3"><h2>Lo que no sale</h2><span class="extra">7 días</span></div>
+      @for (f of semana()?.menorRotacion ?? []; track f.producto) {
+        <div class="rank"><span class="rank-n">—</span><span class="flex-grow-1">{{ f.producto }}</span><b>{{ f.unidades }} u.</b></div>
+      }
+    </section>
+
+    <section class="tarjeta zona-kardex" aria-labelledby="t-kardex">
+      <div class="tarjeta-titulo"><h2 id="t-kardex">Kardex de hoy</h2><a routerLink="/inventario" class="small derecha">Ver todo</a></div>
+      @for (m of kardexHoy(); track m.id) {
+        <div class="kardex-fila">
+          <span class="mono texto-sec">{{ m.fecha | date: 'HH:mm' }}</span>
+          <span class="rot"><span>{{ m.productoCodigo }}</span></span>
+          <span class="flex-grow-1 texto-sec text-truncate">{{ m.motivo }}</span>
+          <b [class.text-success]="m.cantidad > 0" [class.text-danger]="m.cantidad < 0">{{ m.cantidad > 0 ? '+' : '' }}{{ m.cantidad }}</b>
+        </div>
+      } @empty {
+        <div class="vacio">Sin movimientos hoy.</div>
+      }
+    </section>
+  </div>
+}

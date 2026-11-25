@@ -1,55 +1,127 @@
-<header class="text-white py-3 px-3" style="background: var(--color-lateral)">
-  <div class="container d-flex align-items-center gap-2">
-    <i class="bi bi-tools fs-4 text-warning"></i>
-    <span class="fw-bold me-auto">Ferretería · Catálogo de productos</span>
-    <a routerLink="/login" class="btn btn-sm btn-outline-light">Personal</a>
+<header class="tienda-cabecera">
+  <div class="tienda-ancho tienda-cabecera-fila">
+    <a routerLink="/catalogo" class="tienda-marca" aria-label="Ferretería, inicio del catálogo">
+      <span class="marca-sello"><i class="bi bi-tools"></i></span>
+      <span>
+        <span class="tienda-nombre">Ferretería</span>
+        <span class="tienda-lema">Catálogo de productos</span>
+      </span>
+    </a>
+
+    <form class="tienda-buscador" role="search" (ngSubmit)="buscar()">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <input class="form-control" type="search" placeholder="Buscar martillo, tubo PVC, pintura…"
+             aria-label="Buscar producto" name="texto" [(ngModel)]="texto">
+      <button class="btn btn-marca" type="submit">Buscar</button>
+    </form>
+
+    <a routerLink="/login" class="btn btn-suave tienda-personal">
+      <i class="bi bi-person-badge" aria-hidden="true"></i> Personal
+    </a>
   </div>
 </header>
 
-<main class="container py-4">
-  <form class="input-group input-group-lg mb-3" (ngSubmit)="buscar()">
-    <span class="input-group-text"><i class="bi bi-search"></i></span>
-    <input class="form-control" placeholder="¿Qué producto busca? (por ejemplo: martillo, PVC, pintura)"
-           name="texto" [(ngModel)]="texto">
-    <button class="btn btn-marca" type="submit">Buscar</button>
-  </form>
-
-  <div class="d-flex flex-wrap gap-2 mb-4">
-    <button class="btn btn-sm" [class.btn-marca]="!categoriaId()" [class.btn-outline-secondary]="!!categoriaId()"
-            (click)="elegirCategoria()">Todas</button>
+<nav class="tienda-pasillos" aria-label="Categorías">
+  <div class="tienda-ancho pasillos-fila">
+    <button type="button" class="pasillo-tienda" [class.activo]="!categoriaId()" [attr.aria-pressed]="!categoriaId()"
+            (click)="elegirCategoria()">
+      <span class="pt-icono"><i class="bi bi-grid"></i></span>
+      <span class="pt-texto">
+        <span class="pt-nombre">Todo</span>
+        <span class="pt-cuenta">{{ encontrados().length }} productos</span>
+      </span>
+    </button>
     @for (c of categorias(); track c.id) {
-      <button class="btn btn-sm" [class.btn-marca]="categoriaId() === c.id"
-              [class.btn-outline-secondary]="categoriaId() !== c.id" (click)="elegirCategoria(c.id)">{{ c.nombre }}</button>
+      <button type="button" class="pasillo-tienda" [class.activo]="categoriaId() === c.id"
+              [attr.aria-pressed]="categoriaId() === c.id" (click)="elegirCategoria(c.id)">
+        <span class="pt-icono {{ estilo(c.nombre).tono }}"><i class="bi {{ estilo(c.nombre).icono }}"></i></span>
+        <span class="pt-texto">
+          <span class="pt-nombre">{{ c.nombre }}</span>
+          <span class="pt-cuenta">{{ conteo().get(c.nombre) ?? 0 }} productos</span>
+        </span>
+      </button>
     }
+  </div>
+</nav>
+
+<main class="tienda-ancho tienda-contenido">
+  <div class="resultados-barra">
+    <div>
+      <h1 class="resultados-titulo">{{ titulo() }}</h1>
+      <p class="resultados-detalle" aria-live="polite">
+        @if (cargando()) {
+          Buscando productos…
+        } @else {
+          {{ productos().length }} {{ productos().length === 1 ? 'producto' : 'productos' }} · precios con IGV
+          @if (buscado()) {
+            para <strong>«{{ buscado() }}»</strong>
+            <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline" (click)="limpiarBusqueda()">Quitar búsqueda</button>
+          }
+        }
+      </p>
+    </div>
+    <label class="resultados-orden">
+      <span>Ordenar por</span>
+      <select class="form-select form-select-sm" [ngModel]="orden()" (ngModelChange)="cambiarOrden($event)" name="orden">
+        <option value="nombre">Nombre (A-Z)</option>
+        <option value="precio-asc">Precio: menor a mayor</option>
+        <option value="precio-desc">Precio: mayor a menor</option>
+      </select>
+    </label>
   </div>
 
   @if (error()) {
-    <div class="alert alert-danger">{{ error() }}</div>
+    <div class="alert alert-danger"><i class="bi bi-exclamation-octagon"></i>{{ error() }}</div>
   }
 
-  <div class="row g-3">
-    @for (p of productos(); track p.codigo) {
-      <div class="col-sm-6 col-lg-4 col-xl-3">
-        <div class="tarjeta h-100 d-flex flex-column">
-          <div class="small text-muted">{{ p.categoria }}</div>
-          <div class="fw-semibold my-1">{{ p.descripcion }}</div>
-          <div class="small text-muted mb-2">Código {{ p.codigo }}</div>
-          <div class="mt-auto d-flex align-items-center justify-content-between">
-            <span class="fs-5 fw-bold">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</span>
-            @if (p.disponible) {
-              <span class="badge text-bg-success">Disponible</span>
-            } @else {
-              <span class="badge text-bg-secondary">Agotado</span>
-            }
+  <div class="vitrina">
+    @if (cargando() && encontrados().length === 0) {
+      @for (n of esqueletos; track n) {
+        <div class="producto" aria-hidden="true">
+          <div class="producto-imagen esqueleto"></div>
+          <div class="producto-cuerpo">
+            <div class="esqueleto" style="height: 0.75rem; width: 40%"></div>
+            <div class="esqueleto mt-2" style="height: 1rem; width: 85%"></div>
+            <div class="esqueleto mt-3" style="height: 1.5rem; width: 50%"></div>
           </div>
         </div>
-      </div>
-    } @empty {
-      @if (!cargando()) {
-        <p class="text-muted">No encontramos productos con esa búsqueda.</p>
+      }
+    } @else {
+      @for (p of productos(); track p.codigo) {
+        <article class="producto {{ estilo(p.categoria).tono }}" [class.agotado]="!p.disponible">
+          <div class="producto-imagen {{ estilo(p.categoria).tono }}">
+            <i class="bi {{ icono(p.descripcion, p.categoria) }}" aria-hidden="true"></i>
+            @if (!p.disponible) {
+              <span class="pill pill-neutro producto-estado">Agotado</span>
+            }
+          </div>
+          <div class="producto-cuerpo">
+            <span class="producto-categoria">{{ p.categoria }}</span>
+            <h2 class="producto-nombre">{{ p.descripcion }}</h2>
+            <div class="producto-precio">
+              <span class="cifra">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</span>
+            </div>
+          </div>
+        </article>
+      } @empty {
+        <div class="vacio vitrina-vacia">
+          <i class="bi bi-search"></i>
+          <strong>No encontramos productos con esa búsqueda.</strong>
+          Pruebe con otra palabra o revise todas las categorías.
+          @if (buscado() || categoriaId()) {
+            <div class="mt-3">
+              <button type="button" class="btn btn-suave btn-sm" (click)="elegirCategoria(); limpiarBusqueda()">Ver todo el catálogo</button>
+            </div>
+          }
+        </div>
       }
     }
   </div>
-
-  <p class="small text-muted mt-4 mb-0">Precios con IGV incluido. La compra se realiza en tienda.</p>
 </main>
+
+<footer class="tienda-pie">
+  <div class="tienda-ancho tienda-pie-fila">
+    <p class="mb-0"><i class="bi bi-receipt me-2" aria-hidden="true"></i>Precios con IGV incluido. La compra se realiza en tienda.</p>
+    <a routerLink="/login" class="tienda-pie-enlace">Acceso del personal</a>
+  </div>
+</footer>

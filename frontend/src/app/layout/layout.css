@@ -1,39 +1,171 @@
-.lateral {
-  width: 240px;
+/* Barra superior oscura con pestañas: todo el ancho queda para trabajar. */
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  display: flex;
+  align-items: stretch;
+  gap: 1.25rem;
+  height: var(--barra-alto);
+  padding: 0 1.25rem;
+  background: var(--tinta);
+  color: #fff;
+}
+
+.barra-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: #fff;
+  text-decoration: none;
   flex-shrink: 0;
-  background: var(--color-lateral);
 }
 
-.nav-link {
-  color: #d1d5db;
-  border-radius: 0.375rem;
+.barra-nombre {
+  font-family: var(--f-titulo);
+  font-weight: 900;
+  font-stretch: 112%;
+  letter-spacing: 0.02em;
+  font-size: 1.125rem;
 }
 
-.nav-link:hover {
-  color: #fff;
-  background: rgb(255 255 255 / 8%);
-}
-
-.nav-link.activo {
-  color: #fff;
-  background: var(--color-marca);
-}
-
-.contenido {
+.pestanas {
+  display: flex;
+  align-items: stretch;
   min-width: 0;
 }
 
-/* En tabletas y celulares el menú se oculta y se abre con el botón. */
-@media (max-width: 767.98px) {
-  .lateral {
+.pestana {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.875rem;
+  color: #aeb6bf;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  border-top: 3px solid transparent;
+}
+
+.pestana .bi { display: none; font-size: 1rem; }
+.pestana:hover { color: #fff; background: var(--tinta-2); }
+.pestana.activo { color: #fff; border-bottom-color: var(--rotulo); }
+
+.barra-usuario {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.barra-usuario .avatar { background: var(--tinta-2); color: #fff; border: 1px solid #3a434e; }
+
+.barra-quien {
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: #aeb6bf;
+}
+
+.barra-quien .fw-bold { color: #fff; font-size: 0.8125rem; }
+
+.barra-salir {
+  --bs-btn-color: #fff;
+  --bs-btn-border-color: #4a5562;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--tinta-2);
+  --bs-btn-hover-border-color: #aeb6bf;
+}
+
+.pagina {
+  padding: clamp(1rem, 1.6vw, 1.5rem);
+}
+
+.abajo,
+.mas-fondo,
+.mas-hoja {
+  display: none;
+}
+
+@media (min-width: 1500px) {
+  .pestana .bi { display: inline; }
+}
+
+@media (max-width: 1365.98px) {
+  .barra-quien { display: none; }
+  .pestana { padding: 0 0.625rem; }
+}
+
+/* Celular y tableta: las 8 pestañas no caben; se usa navegación inferior. */
+@media (max-width: 1199.98px) {
+  .pestanas { display: none; }
+  .barra { padding: 0 1rem; }
+  .pagina { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+
+  .abajo {
     position: fixed;
-    inset: 0 auto 0 0;
-    z-index: 1040;
-    transform: translateX(-100%);
-    transition: transform 0.2s;
+    inset: auto 0 0 0;
+    z-index: 1030;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    background: var(--tinta);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .lateral.abierto {
-    transform: none;
+  .abajo a,
+  .abajo button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.5rem 0.25rem 0.5625rem;
+    min-height: 3.5rem;
+    color: #aeb6bf;
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: none;
+    border: 0;
+    border-top: 3px solid transparent;
   }
+
+  .abajo .bi { font-size: 1.25rem; }
+  .abajo .activo { color: #fff; border-top-color: var(--rotulo); }
+
+  .mas-fondo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1031;
+    background: rgb(22 27 33 / 45%);
+  }
+
+  .mas-hoja {
+    display: grid;
+    position: fixed;
+    inset: auto 0 calc(3.5rem + env(safe-area-inset-bottom)) 0;
+    z-index: 1032;
+    background: var(--superficie);
+    border-top: 3px solid var(--tinta);
+  }
+
+  .mas-hoja a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9375rem 1.25rem;
+    color: var(--tinta);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid var(--borde);
+  }
+
+  .mas-hoja a.activo { box-shadow: inset 4px 0 0 var(--tinta); background: var(--hundido); }
+}
+
+@media (max-width: 575.98px) {
+  .barra-nombre { font-size: 1rem; }
 }

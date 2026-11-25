@@ -1,0 +1,63 @@
+/*
+ * Paleta "Anaquel".
+ *
+ * Criterio: neutros fríos de verdad (sin tinte crema ni beige), un solo
+ * acento contenido que se reserva para acciones, un amarillo de rótulo
+ * bajado de saturación y cinco colores de pasillo apagados con la misma
+ * luminosidad aproximada, todos con contraste AA sobre blanco.
+ */
+:root {
+  /* ---------- Estructura y neutros (grises fríos con un leve matiz azul) ---------- */
+  --tinta: #161b21;            /* Texto principal y barra superior. 17:1 sobre blanco. */
+  --tinta-2: #222932;          /* Hover y elementos activos sobre la barra oscura. */
+  --texto-sec: #4a525c;        /* Texto secundario. 7.9:1 sobre blanco, 6.9:1 sobre el fondo. */
+  --texto-ter: #69727d;        /* Notas y ayudas: 4.9:1 sobre blanco, 4.5:1 sobre el gris hundido. */
+  --fondo: #eceff2;            /* Fondo de la página: gris frío claro que separa los bloques blancos. */
+  --superficie: #ffffff;       /* Bloques de trabajo: blanco limpio. */
+  --hundido: #f5f7f9;          /* Zonas secundarias dentro de un bloque (encabezados de tabla, totales). */
+  --borde: #d7dce2;            /* Líneas finas entre filas y bloques. */
+  --borde-fuerte: #b9c0c8;     /* Divisiones marcadas (no se usa para el contorno de campos). */
+  --borde-campo: #868f9a;      /* Contorno de campos y botones neutros: 3.2:1, mínimo para controles. */
+  --estructura: #161b21;       /* Contorno de 2 px de los bloques: el "estante". */
+
+  /* ---------- Acento: óxido (se usa poco y solo para acciones) ---------- */
+  --accion: #a8461f;           /* Botón principal (Cobrar, Nueva venta, Guardar). Blanco encima: 5.9:1. */
+  --accion-hover: #8c3a19;
+  --accion-activo: #73301a;
+  --accion-foco: rgb(168 70 31 / 28%);
+
+  /* ---------- Rótulo de anaquel ---------- */
+  --rotulo: #e8d580;           /* Amarillo mostaza claro, menos saturado que un amarillo de señalización. */
+  --rotulo-texto: #161b21;     /* 11.8:1 sobre el rótulo. */
+
+  /* ---------- Pasillos (categorías). Misma luminosidad, tonos repartidos; AA sobre blanco y con texto blanco ---------- */
+  --p-agua: #3d6787;           /* Gasfitería: azul acero (6.0:1). */
+  --p-ocre: #85651b;           /* Herramientas eléctricas: ocre apagado (5.4:1). */
+  --p-ciruela: #6d4c69;        /* Herramientas manuales: ciruela (7.3:1). */
+  --p-musgo: #4e6b3a;          /* Pinturas: verde musgo (6.0:1). */
+  --p-pizarra: #56606b;        /* Tornillería y fijación: gris pizarra (6.4:1). */
+
+  /* ---------- Estados (texto oscuro sobre fondo muy claro y frío) ---------- */
+  --ok: #2f7a4b;               /* 4.7:1 sobre su fondo suave */
+  --ok-suave: #e9f4ee;
+  --alerta: #8a5a00;           /* 5.4:1 sobre su fondo suave */
+  --alerta-suave: #fbf3e0;
+  --error: #b3261e;            /* 5.7:1 sobre su fondo suave */
+  --error-suave: #fbeceb;
+  --info: #2f5d8c;             /* 6.0:1 sobre su fondo suave */
+  --info-suave: #e9f0f7;
+
+  /* ---------- Tipografía, medidas ---------- */
+  --f-titulo: 'Archivo Variable', 'Arial Narrow', Arial, sans-serif;
+  --f-texto: 'Archivo Variable', system-ui, 'Segoe UI', sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --radio: 2px;
+  --barra-alto: 3.5rem;
+}
+
+/* Clases de pasillo: fijan --cat para franjas, íconos y rótulos. */
+.pasillo-agua { --cat: var(--p-agua); }
+.pasillo-ocre { --cat: var(--p-ocre); }
+.pasillo-ciruela { --cat: var(--p-ciruela); }
+.pasillo-musgo { --cat: var(--p-musgo); }
+.pasillo-pizarra { --cat: var(--p-pizarra); }
