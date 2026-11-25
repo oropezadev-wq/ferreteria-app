@@ -50,49 +50,15 @@
       <span class="cifra">{{ r.cantidadAnuladas }}</span>
     </div>
   </div>
-
-  <div class="reportes-rejilla mb-3">
-    <section class="tarjeta" aria-labelledby="titulo-dias">
-      <div class="tarjeta-titulo"><h2 id="titulo-dias">Ventas por día</h2></div>
-      @if (r.ventasPorDia.length === 0) {
-        <div class="vacio"><i class="bi bi-bar-chart"></i>No hay ventas en el periodo.</div>
-      } @else {
-        <div class="barras" role="list">
-          @for (d of r.ventasPorDia; track d.fecha) {
-            <div class="barra" role="listitem" [attr.aria-label]="(d.fecha | date: 'dd/MM') + ': ' + (d.total | currency: 'PEN' : 'S/ ')">
-              <span class="barra-valor">{{ d.total | currency: 'PEN' : 'S/ ' : '1.0-0' }}</span>
-              <span class="barra-columna"><span [style.height.%]="(d.total / maximo()) * 100"></span></span>
-              <span class="barra-fecha">{{ d.fecha | date: 'dd/MM' }}</span>
-            </div>
-          }
-        </div>
-      }
-    </section>
-
-    <section class="tarjeta" aria-labelledby="titulo-mayor">
-      <div class="tarjeta-titulo"><i class="bi bi-arrow-up-right text-success" aria-hidden="true"></i><h2 id="titulo-mayor">Mayor rotación</h2></div>
-      @for (f of r.mayorRotacion; track f.producto; let i = $index) {
-        <div class="ranking"><span class="ranking-pos">{{ i + 1 }}</span><span class="flex-grow-1">{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
-      } @empty {
-        <div class="vacio py-3">Sin ventas en el periodo.</div>
-      }
-    </section>
-
-    <section class="tarjeta" aria-labelledby="titulo-menor">
-      <div class="tarjeta-titulo"><i class="bi bi-arrow-down-right texto-sec" aria-hidden="true"></i><h2 id="titulo-menor">Menor rotación</h2></div>
-      @for (f of r.menorRotacion; track f.producto; let i = $index) {
-        <div class="ranking"><span class="ranking-pos">{{ i + 1 }}</span><span class="flex-grow-1">{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
-      }
-    </section>
-  </div>
 }
 
-<section class="tarjeta" aria-labelledby="titulo-comprobantes">
-  <div class="tarjeta-titulo">
+<div class="reportes">
+<section class="tarjeta p-0 zona-comprobantes" aria-labelledby="titulo-comprobantes">
+  <div class="tarjeta-titulo px-3 pt-3">
     <h2 id="titulo-comprobantes">Comprobantes emitidos</h2>
     <span class="extra">{{ ventas().length }} en el periodo</span>
   </div>
-  <div class="table-responsive">
+  <div class="table-responsive tabla-alto">
     <table class="table align-middle">
       <thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Pago</th><th class="text-end">Total</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
       <tbody>
@@ -122,7 +88,48 @@
       </tbody>
     </table>
   </div>
+  @if (ventas().length > 0) {
+    <div class="barra-totales">
+      <span>Registradas <b>{{ totalesComprobantes().registradas }}</b></span>
+      <span>por <b>{{ totalesComprobantes().monto | currency: 'PEN' : 'S/ ' }}</b></span>
+      <span>Anuladas <b>{{ totalesComprobantes().anuladas }}</b></span>
+    </div>
+  }
 </section>
+
+  @if (reporte(); as r) {
+    <section class="tarjeta zona-dias" aria-labelledby="titulo-dias">
+      <div class="tarjeta-titulo"><h2 id="titulo-dias">Ventas por día</h2></div>
+      @if (r.ventasPorDia.length === 0) {
+        <div class="vacio"><i class="bi bi-bar-chart"></i>No hay ventas en el periodo.</div>
+      } @else {
+        <div class="rep-barras" role="list">
+          @for (d of r.ventasPorDia; track d.fecha) {
+            <div class="rep-barra" role="listitem" [attr.aria-label]="(d.fecha | date: 'dd/MM') + ': ' + (d.total | currency: 'PEN' : 'S/ ')">
+              <span class="barra-valor">{{ d.total | currency: 'PEN' : 'S/ ' : '1.0-0' }}</span>
+              <span class="barra-columna"><span [style.height.%]="(d.total / maximo()) * 100"></span></span>
+              <span class="barra-fecha">{{ d.fecha | date: 'dd/MM' }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+    <section class="tarjeta zona-mayor" aria-labelledby="titulo-mayor">
+      <div class="tarjeta-titulo"><i class="bi bi-arrow-up-right text-success" aria-hidden="true"></i><h2 id="titulo-mayor">Mayor rotación</h2></div>
+      @for (f of r.mayorRotacion; track f.producto; let i = $index) {
+        <div class="ranking"><span class="ranking-pos">{{ i + 1 }}</span><span class="flex-grow-1">{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
+      } @empty {
+        <div class="vacio py-3">Sin ventas en el periodo.</div>
+      }
+    </section>
+    <section class="tarjeta zona-menor" aria-labelledby="titulo-menor">
+      <div class="tarjeta-titulo"><i class="bi bi-arrow-down-right texto-sec" aria-hidden="true"></i><h2 id="titulo-menor">Menor rotación</h2></div>
+      @for (f of r.menorRotacion; track f.producto; let i = $index) {
+        <div class="ranking"><span class="ranking-pos">{{ i + 1 }}</span><span class="flex-grow-1">{{ f.producto }}</span><strong>{{ f.unidades }} u.</strong></div>
+      }
+    </section>
+  }
+</div>
 
 @if (porAnular(); as v) {
   <div class="dialogo-fondo" (click)="cancelarAnulacion()">

@@ -17,49 +17,10 @@
   <div class="alert alert-success" role="status"><i class="bi bi-check2-circle"></i><span>{{ mensaje() }}</span></div>
 }
 
-@if (formAbierto()) {
-  <form class="tarjeta formulario-panel mb-3" [formGroup]="form" (ngSubmit)="crear()">
-    <div class="tarjeta-titulo">
-      <h2>Nuevo usuario</h2>
-      <button type="button" class="btn-close ms-auto" (click)="formAbierto.set(false)" aria-label="Cerrar formulario"></button>
-    </div>
-    <div class="row g-3">
-      <div class="col-md-6 col-xl-3">
-        <label class="form-label" for="nombre">Nombre</label>
-        <input id="nombre" class="form-control" formControlName="nombre"
-               [class.is-invalid]="form.controls.nombre.touched && form.controls.nombre.invalid">
-        <div class="invalid-feedback">Ingrese el nombre.</div>
-      </div>
-      <div class="col-md-6 col-xl-3">
-        <label class="form-label" for="usuario">Usuario</label>
-        <input id="usuario" class="form-control" formControlName="usuario" autocomplete="off"
-               [class.is-invalid]="form.controls.usuario.touched && form.controls.usuario.invalid">
-        <div class="invalid-feedback">De 3 a 30 minúsculas, números, punto o guion bajo.</div>
-      </div>
-      <div class="col-md-6 col-xl-3">
-        <label class="form-label" for="clave">Contraseña</label>
-        <input id="clave" type="password" class="form-control" formControlName="clave" autocomplete="new-password"
-               [class.is-invalid]="form.controls.clave.touched && form.controls.clave.invalid">
-        <div class="invalid-feedback">Al menos 8 caracteres, con letras y números.</div>
-      </div>
-      <div class="col-md-6 col-xl-3">
-        <label class="form-label" for="rol">Rol</label>
-        <select id="rol" class="form-select" formControlName="rol">
-          <option value="VENDEDOR">Vendedor</option>
-          <option value="ADMINISTRADOR">Administrador</option>
-        </select>
-      </div>
-    </div>
-    <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
-      <button class="btn btn-marca" type="submit">Crear usuario</button>
-      <span class="small texto-sec"><i class="bi bi-shield-lock"></i> La contraseña se guarda cifrada con BCrypt; nadie puede verla después.</span>
-    </div>
-  </form>
-}
-
-<section class="tarjeta p-0">
+<div class="con-panel" [class.abierto]="formAbierto()">
+<section class="tarjeta p-0 lista-llena">
   <div class="barra-conteo">{{ usuarios().length }} usuarios</div>
-  <div class="table-responsive">
+  <div class="table-responsive tabla-alto">
     <table class="table align-middle tabla-plana">
       <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
       <tbody>
@@ -87,3 +48,44 @@
     </table>
   </div>
 </section>
+
+@if (formAbierto()) {
+  <form class="tarjeta panel-lateral" [formGroup]="form" (ngSubmit)="crear()">
+    <div class="tarjeta-titulo">
+      <h2>Nuevo usuario</h2>
+      <button type="button" class="btn-close ms-auto" (click)="formAbierto.set(false)" aria-label="Cerrar formulario"></button>
+    </div>
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label" for="nombre">Nombre</label>
+        <input id="nombre" class="form-control" formControlName="nombre"
+               [class.is-invalid]="form.controls.nombre.touched && form.controls.nombre.invalid">
+        <div class="invalid-feedback">Ingrese el nombre.</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="usuario">Usuario</label>
+        <input id="usuario" class="form-control" formControlName="usuario" autocomplete="off"
+               [class.is-invalid]="form.controls.usuario.touched && form.controls.usuario.invalid">
+        <div class="invalid-feedback">De 3 a 30 minúsculas, números, punto o guion bajo.</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="clave">Contraseña</label>
+        <input id="clave" type="password" class="form-control" formControlName="clave" autocomplete="new-password"
+               [class.is-invalid]="form.controls.clave.touched && form.controls.clave.invalid">
+        <div class="invalid-feedback">Al menos 8 caracteres, con letras y números.</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label" for="rol">Rol</label>
+        <select id="rol" class="form-select" formControlName="rol">
+          <option value="VENDEDOR">Vendedor</option>
+          <option value="ADMINISTRADOR">Administrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="d-flex flex-column align-items-start gap-2 mt-3">
+      <button class="btn btn-marca" type="submit">Crear usuario</button>
+      <span class="small texto-sec"><i class="bi bi-shield-lock"></i> La contraseña se guarda cifrada con BCrypt; nadie puede verla después.</span>
+    </div>
+  </form>
+}
+</div>

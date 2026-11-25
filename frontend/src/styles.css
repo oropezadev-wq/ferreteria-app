@@ -1,18 +1,16 @@
 /*
- * Sistema visual de la ferretería.
+ * Sistema visual "Anaquel" de la ferretería.
  *
- * Fuentes locales (sin depender de internet en la tienda):
- * - Archivo, semicondensada: títulos, precios y cifras, con el tono de los
- *   rótulos de mostrador.
- * - IBM Plex Sans: textos de interfaz, legible en tamaños chicos y con
- *   números tabulares para montos y stock.
+ * Fuentes locales (no dependen de internet en la tienda):
+ * - Archivo, con eje de ancho: títulos condensados, cifras y textos.
+ * - IBM Plex Mono: códigos de producto (rótulos de anaquel) y ticket.
  */
 @import '@fontsource-variable/archivo/wdth.css';
-@import '@fontsource/ibm-plex-sans/latin-400.css';
-@import '@fontsource/ibm-plex-sans/latin-500.css';
-@import '@fontsource/ibm-plex-sans/latin-600.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+@import '@fontsource/ibm-plex-mono/latin-600.css';
 
-/* Orden de la cascada: base (tokens y componentes) y luego cada zona. */
+/* Orden de la cascada: paleta, componentes base y luego cada zona. */
+@import './estilos/tokens.css';
 @import './estilos/base.css';
 @import './estilos/catalogo.css';
 @import './estilos/pantallas.css';

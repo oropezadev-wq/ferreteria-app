@@ -5,6 +5,8 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 
 import { Movimiento, Producto, TipoDocumento, TipoMovimiento } from '../../models/modelos';
 import { ApiService, mensajeDeError } from '../../services/api.service';
+import { estiloCategoria } from '../../services/categorias';
+import { coberturaMinimo, nivelStock } from '../../services/niveles';
 
 @Component({
   selector: 'app-inventario',
@@ -45,6 +47,22 @@ export class Inventario implements OnInit {
     this.tipoElegido() === 'AJUSTE' ? 'Stock contado' : 'Cantidad',
   );
   protected readonly stockBajo = computed(() => this.productos().filter((p) => p.stockBajo));
+  protected readonly estilo = estiloCategoria;
+  protected readonly nivel = nivelStock;
+  protected readonly cobertura = coberturaMinimo;
+  /** Densidad de la tabla del kardex (compacta muestra más filas). */
+  protected readonly densa = signal(false);
+  /** Resumen de lo que muestra el kardex (con o sin filtro). */
+  protected readonly totales = computed(() => {
+    const t = { entradas: 0, salidas: 0, ajustes: 0, devoluciones: 0 };
+    for (const m of this.movimientos()) {
+      if (m.tipo === 'ENTRADA') t.entradas += m.cantidad;
+      else if (m.tipo === 'SALIDA') t.salidas += Math.abs(m.cantidad);
+      else if (m.tipo === 'DEVOLUCION') t.devoluciones += m.cantidad;
+      else t.ajustes += 1;
+    }
+    return t;
+  });
 
   ngOnInit(): void {
     this.form.controls.tipo.valueChanges.subscribe((t) => {

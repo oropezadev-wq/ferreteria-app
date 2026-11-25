@@ -15,8 +15,79 @@
   <div class="alert alert-success" role="status"><i class="bi bi-check2-circle"></i><span>{{ exito() }}</span></div>
 }
 
-<div class="inventario-rejilla mb-3">
-  <form class="tarjeta" [formGroup]="form" (ngSubmit)="registrar()">
+<div class="inventario">
+<section class="tarjeta p-0 zona-kardex" aria-labelledby="titulo-kardex">
+  <div class="barra-filtros">
+    <h2 class="titulo-kardex" id="titulo-kardex">Kardex</h2>
+    <div class="input-icono filtro-documento">
+      <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+      <input class="form-control" placeholder="N.° de guía o comprobante"
+             aria-label="Buscar por documento" [(ngModel)]="filtroDocumento" (keyup.enter)="cargarKardex()">
+    </div>
+    <button class="btn btn-suave" type="button" (click)="cargarKardex()">
+      <i class="bi bi-search"></i> Buscar
+    </button>
+    <select class="form-select filtro-select" aria-label="Filtrar por producto" [(ngModel)]="filtroProducto" (ngModelChange)="cargarKardex()">
+      <option [ngValue]="null">Últimos 50 movimientos</option>
+      @for (p of productos(); track p.id) {
+        <option [ngValue]="p.id">{{ p.codigo }} · {{ p.descripcion }}</option>
+      }
+    </select>
+  </div>
+  <div class="barra-conteo">
+    <span>{{ movimientos().length }} movimientos{{ filtroProducto || filtroDocumento.trim() ? ' (filtrados)' : '' }}</span>
+    <button type="button" class="btn btn-link btn-sm p-0 ms-auto" (click)="densa.set(!densa())">{{ densa() ? 'Vista cómoda' : 'Vista compacta' }}</button>
+  </div>
+  <div class="table-responsive tabla-alto">
+    <table class="table table-sm align-middle tabla-plana tabla-kardex" [class.densa]="densa()">
+      <thead>
+        <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th class="text-end">Cantidad</th>
+          <th class="text-end">Stock anterior</th><th class="text-end">Stock final</th><th>Motivo</th><th>Documento</th></tr>
+      </thead>
+      <tbody>
+        @for (m of movimientos(); track m.id) {
+          <tr>
+            <td class="text-nowrap texto-sec">{{ m.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="celda-producto"><span class="celda-principal">{{ m.productoDescripcion }}</span><span class="celda-sub">{{ m.productoCodigo }}</span></td>
+            <td>
+              <span class="pill"
+                    [class.pill-ok]="m.tipo === 'ENTRADA'"
+                    [class.pill-error]="m.tipo === 'SALIDA'"
+                    [class.pill-info]="m.tipo === 'AJUSTE'"
+                    [class.pill-alerta]="m.tipo === 'DEVOLUCION'">{{ m.tipo === 'DEVOLUCION' ? 'Devolución' : (m.tipo === 'ENTRADA' ? 'Entrada' : (m.tipo === 'SALIDA' ? 'Salida' : 'Ajuste')) }}</span>
+            </td>
+            <td class="text-end fw-semibold" [class.text-success]="m.cantidad > 0" [class.text-danger]="m.cantidad < 0">
+              {{ m.cantidad > 0 ? '+' : '' }}{{ m.cantidad }}
+            </td>
+            <td class="text-end texto-sec">{{ m.stockAnterior }}</td>
+            <td class="text-end fw-semibold">{{ m.stockResultante }}</td>
+            <td>{{ m.motivo }}</td>
+            <td class="small">
+              @if (m.tipoDocumento && m.numeroDocumento) {
+                {{ nombreDocumento[m.tipoDocumento] }} {{ m.numeroDocumento }}
+                <span class="celda-sub">{{ m.fechaDocumento | date: 'dd/MM/yyyy' }} · {{ m.proveedor }}</span>
+              } @else {
+                <span class="texto-sec">—</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="8"><div class="vacio"><i class="bi bi-clipboard"></i>Sin movimientos.</div></td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (movimientos().length > 0) {
+    <div class="barra-totales" aria-live="polite">
+      <span>Entradas <b>{{ totales().entradas }}</b> u.</span>
+      <span>Salidas <b>{{ totales().salidas }}</b> u.</span>
+      <span>Ajustes <b>{{ totales().ajustes }}</b></span>
+      <span>Devoluciones <b>{{ totales().devoluciones }}</b> u.</span>
+    </div>
+  }
+</section>
+
+  <form class="tarjeta zona-form" [formGroup]="form" (ngSubmit)="registrar()">
     <div class="tarjeta-titulo"><h2>Registrar movimiento</h2></div>
     <div class="row g-3">
       <div class="col-12">
@@ -30,7 +101,7 @@
           <label class="btn" for="t-ajuste"><i class="bi bi-sliders"></i> Ajuste</label>
         </div>
       </div>
-      <div class="col-sm-8">
+      <div class="col-12">
         <label class="form-label" for="producto">Producto</label>
         <select id="producto" class="form-select" formControlName="productoId" [class.is-invalid]="invalido('productoId')">
           <option [ngValue]="null" disabled>Seleccione…</option>
@@ -40,7 +111,7 @@
         </select>
         <div class="invalid-feedback">Seleccione un producto.</div>
       </div>
-      <div class="col-sm-4">
+      <div class="col-6">
         <label class="form-label" for="cantidad">{{ etiquetaCantidad() }}</label>
         <input id="cantidad" type="number" min="0" class="form-control" formControlName="cantidad"
                [class.is-invalid]="invalido('cantidad')">
@@ -96,82 +167,24 @@
     </div>
   </form>
 
-  <section class="tarjeta" aria-labelledby="titulo-alertas">
+
+  <section class="tarjeta zona-alertas" aria-labelledby="titulo-alertas">
     <div class="tarjeta-titulo">
       <i class="bi bi-exclamation-triangle text-danger" aria-hidden="true"></i>
       <h2 id="titulo-alertas">Alertas de stock mínimo</h2>
       <span class="extra">{{ stockBajo().length }}</span>
     </div>
     @for (p of stockBajo(); track p.id) {
-      <div class="alerta-stock">
+      <div class="alerta-stock {{ estilo(p.categoriaNombre).tono }}">
         <div class="flex-grow-1 min-w-0">
           <span class="celda-principal d-block text-truncate">{{ p.descripcion }}</span>
-          <span class="celda-sub">{{ p.codigo }}</span>
-          <div class="nivel mt-1"><span [style.width.%]="p.stockMinimo ? (p.stock / p.stockMinimo) * 100 : 0"></span></div>
+          <span class="rot mt-1"><span>{{ p.codigo }}</span></span>
+          <div class="nivel mt-1" [class.nivel-critico]="nivel(p) === 'critico'" [class.nivel-bajo]="nivel(p) === 'bajo'"><span [style.width.%]="cobertura(p)"></span></div>
         </div>
-        <span class="text-danger fw-bold text-nowrap">{{ p.stock }} / {{ p.stockMinimo }}</span>
+        <span class="fw-bold text-nowrap" [class.text-danger]="nivel(p) === 'critico'">{{ p.stock }} / {{ p.stockMinimo }}</span>
       </div>
     } @empty {
       <div class="vacio"><i class="bi bi-check2-circle"></i>Todo el stock está sobre el mínimo.</div>
     }
   </section>
 </div>
-
-<section class="tarjeta p-0" aria-labelledby="titulo-kardex">
-  <div class="barra-filtros">
-    <h2 class="titulo-kardex" id="titulo-kardex">Kardex</h2>
-    <div class="input-icono filtro-documento">
-      <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-      <input class="form-control" placeholder="N.° de guía o comprobante"
-             aria-label="Buscar por documento" [(ngModel)]="filtroDocumento" (keyup.enter)="cargarKardex()">
-    </div>
-    <button class="btn btn-suave" type="button" (click)="cargarKardex()">
-      <i class="bi bi-search"></i> Buscar
-    </button>
-    <select class="form-select filtro-select" aria-label="Filtrar por producto" [(ngModel)]="filtroProducto" (ngModelChange)="cargarKardex()">
-      <option [ngValue]="null">Últimos 50 movimientos</option>
-      @for (p of productos(); track p.id) {
-        <option [ngValue]="p.id">{{ p.codigo }} · {{ p.descripcion }}</option>
-      }
-    </select>
-  </div>
-  <div class="table-responsive">
-    <table class="table table-sm align-middle tabla-plana tabla-kardex">
-      <thead>
-        <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th class="text-end">Cantidad</th>
-          <th class="text-end">Stock anterior</th><th class="text-end">Stock final</th><th>Motivo</th><th>Documento</th></tr>
-      </thead>
-      <tbody>
-        @for (m of movimientos(); track m.id) {
-          <tr>
-            <td class="text-nowrap texto-sec">{{ m.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
-            <td class="celda-producto"><span class="celda-principal">{{ m.productoDescripcion }}</span><span class="celda-sub">{{ m.productoCodigo }}</span></td>
-            <td>
-              <span class="pill"
-                    [class.pill-ok]="m.tipo === 'ENTRADA'"
-                    [class.pill-error]="m.tipo === 'SALIDA'"
-                    [class.pill-info]="m.tipo === 'AJUSTE'"
-                    [class.pill-alerta]="m.tipo === 'DEVOLUCION'">{{ m.tipo === 'DEVOLUCION' ? 'Devolución' : (m.tipo === 'ENTRADA' ? 'Entrada' : (m.tipo === 'SALIDA' ? 'Salida' : 'Ajuste')) }}</span>
-            </td>
-            <td class="text-end fw-semibold" [class.text-success]="m.cantidad > 0" [class.text-danger]="m.cantidad < 0">
-              {{ m.cantidad > 0 ? '+' : '' }}{{ m.cantidad }}
-            </td>
-            <td class="text-end texto-sec">{{ m.stockAnterior }}</td>
-            <td class="text-end fw-semibold">{{ m.stockResultante }}</td>
-            <td>{{ m.motivo }}</td>
-            <td class="small">
-              @if (m.tipoDocumento && m.numeroDocumento) {
-                {{ nombreDocumento[m.tipoDocumento] }} {{ m.numeroDocumento }}
-                <span class="celda-sub">{{ m.fechaDocumento | date: 'dd/MM/yyyy' }} · {{ m.proveedor }}</span>
-              } @else {
-                <span class="texto-sec">—</span>
-              }
-            </td>
-          </tr>
-        } @empty {
-          <tr><td colspan="8"><div class="vacio"><i class="bi bi-clipboard"></i>Sin movimientos.</div></td></tr>
-        }
-      </tbody>
-    </table>
-  </div>
-</section>

@@ -23,21 +23,21 @@
 
 <nav class="tienda-pasillos" aria-label="Categorías">
   <div class="tienda-ancho pasillos-fila">
-    <button type="button" class="pasillo" [class.activo]="!categoriaId()" [attr.aria-pressed]="!categoriaId()"
+    <button type="button" class="pasillo-tienda" [class.activo]="!categoriaId()" [attr.aria-pressed]="!categoriaId()"
             (click)="elegirCategoria()">
-      <span class="pasillo-icono tono-neutro"><i class="bi bi-grid"></i></span>
-      <span class="pasillo-texto">
-        <span class="pasillo-nombre">Todo</span>
-        <span class="pasillo-cuenta">{{ encontrados().length }} productos</span>
+      <span class="pt-icono"><i class="bi bi-grid"></i></span>
+      <span class="pt-texto">
+        <span class="pt-nombre">Todo</span>
+        <span class="pt-cuenta">{{ encontrados().length }} productos</span>
       </span>
     </button>
     @for (c of categorias(); track c.id) {
-      <button type="button" class="pasillo" [class.activo]="categoriaId() === c.id"
+      <button type="button" class="pasillo-tienda" [class.activo]="categoriaId() === c.id"
               [attr.aria-pressed]="categoriaId() === c.id" (click)="elegirCategoria(c.id)">
-        <span class="pasillo-icono {{ estilo(c.nombre).tono }}"><i class="bi {{ estilo(c.nombre).icono }}"></i></span>
-        <span class="pasillo-texto">
-          <span class="pasillo-nombre">{{ c.nombre }}</span>
-          <span class="pasillo-cuenta">{{ conteo().get(c.nombre) ?? 0 }} productos</span>
+        <span class="pt-icono {{ estilo(c.nombre).tono }}"><i class="bi {{ estilo(c.nombre).icono }}"></i></span>
+        <span class="pt-texto">
+          <span class="pt-nombre">{{ c.nombre }}</span>
+          <span class="pt-cuenta">{{ conteo().get(c.nombre) ?? 0 }} productos</span>
         </span>
       </button>
     }
@@ -88,7 +88,7 @@
       }
     } @else {
       @for (p of productos(); track p.codigo) {
-        <article class="producto" [class.agotado]="!p.disponible">
+        <article class="producto {{ estilo(p.categoria).tono }}" [class.agotado]="!p.disponible">
           <div class="producto-imagen {{ estilo(p.categoria).tono }}">
             <i class="bi {{ icono(p.descripcion, p.categoria) }}" aria-hidden="true"></i>
             @if (!p.disponible) {

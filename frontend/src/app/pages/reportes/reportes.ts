@@ -20,6 +20,15 @@ export class Reportes implements OnInit {
   protected readonly ventas = signal<Venta[]>([]);
   protected readonly error = signal('');
   protected readonly mensaje = signal('');
+  /** Totales de la lista de comprobantes del periodo (barra fija al pie). */
+  protected readonly totalesComprobantes = computed(() => {
+    const registradas = this.ventas().filter((v) => v.estado === 'REGISTRADA');
+    return {
+      registradas: registradas.length,
+      monto: registradas.reduce((s, v) => s + v.total, 0),
+      anuladas: this.ventas().length - registradas.length,
+    };
+  });
   protected readonly maximo = computed(() =>
     Math.max(1, ...(this.reporte()?.ventasPorDia ?? []).map((d) => d.total)),
   );

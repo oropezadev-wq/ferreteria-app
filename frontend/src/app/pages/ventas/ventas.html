@@ -1,103 +1,130 @@
-<div class="encabezado no-imprimir">
-  <div>
-    <h1>Ventas</h1>
-    <p>Busque o escanee el producto, elija el comprobante y cobre.</p>
-  </div>
-</div>
+<h1 class="visually-hidden">Ventas</h1>
 
 @if (error()) {
   <div class="alert alert-danger no-imprimir" role="alert"><i class="bi bi-exclamation-octagon"></i><span>{{ error() }}</span></div>
 }
 @if (mensaje() && !ultimaVenta()) {
-  <div class="alert alert-success" role="status"><i class="bi bi-check2-circle"></i><span>{{ mensaje() }}</span></div>
+  <div class="alert alert-success no-imprimir" role="status"><i class="bi bi-check2-circle"></i><span>{{ mensaje() }}</span></div>
 }
 
 @if (ultimaVenta(); as v) {
-  <section class="tarjeta recibo comprobante mb-4" aria-labelledby="titulo-recibo">
-    <div class="recibo-cabecera">
-      <span class="recibo-ok no-imprimir"><i class="bi bi-check-lg"></i></span>
-      <div>
-        <div class="sobretitulo">{{ v.tipoComprobante === 'FACTURA' ? 'FACTURA' : 'BOLETA DE VENTA' }} ELECTRÓNICA</div>
-        <h2 class="recibo-numero" id="titulo-recibo">{{ v.comprobante }}</h2>
-        <div class="small texto-sec">{{ v.fecha | date: 'dd/MM/yyyy HH:mm' }} · Atendió: {{ v.vendedor }}</div>
-        @if (v.clienteDocumento) {
-          <div class="small">Cliente: {{ v.clienteNombre }} ({{ v.clienteDocumento }})</div>
-        }
-      </div>
-      <span class="pill pill-alerta recibo-sunat">Envío a SUNAT: {{ v.estadoSunat === 'PENDIENTE' ? 'pendiente' : v.estadoSunat }}</span>
-    </div>
-    <table class="table table-sm recibo-detalle">
-      <tbody>
-        @for (d of v.detalles; track d.codigo) {
-          <tr><td>{{ d.cantidad }} x {{ d.descripcion }}</td><td class="text-end">{{ d.subtotal | currency: 'PEN' : 'S/ ' }}</td></tr>
-        }
-      </tbody>
-    </table>
-    <div class="recibo-pie">
-      <div class="d-flex gap-2 no-imprimir">
+  <section class="emitido" aria-labelledby="t-emitido">
+    <div class="emitido-info no-imprimir">
+      <span class="pill pill-ok"><i class="bi bi-check-lg"></i> Venta registrada</span>
+      <h2 id="t-emitido" class="emitido-numero">{{ v.comprobante }}</h2>
+      <p class="texto-sec mb-0">{{ v.tipoComprobante === 'FACTURA' ? 'Factura' : 'Boleta de venta' }} electrónica por <b class="text-body">{{ v.total | currency: 'PEN' : 'S/ ' }}</b>.
+        Envío a SUNAT: {{ v.estadoSunat === 'PENDIENTE' ? 'pendiente' : v.estadoSunat }}.</p>
+      @if (vueltoUltimo(); as vu) {
+        <p class="emitido-vuelto">Vuelto <span class="cifra">{{ vu.vuelto | currency: 'PEN' : 'S/ ' }}</span><small>recibió {{ vu.recibido | currency: 'PEN' : 'S/ ' }}</small></p>
+      }
+      <div class="d-flex flex-wrap gap-2 mt-2">
         <button class="btn btn-suave" (click)="imprimir()"><i class="bi bi-printer"></i> Imprimir</button>
-        <button class="btn btn-marca" (click)="nuevaVenta()"><i class="bi bi-plus-lg"></i> Nueva venta</button>
+        <button class="btn btn-marca" (click)="nuevaVenta()"><i class="bi bi-plus-lg"></i> Nueva venta <span class="tecla">F2</span></button>
       </div>
-      <dl class="recibo-totales">
-        <dt>Op. gravada</dt><dd>{{ v.gravada | currency: 'PEN' : 'S/ ' }}</dd>
-        <dt>IGV</dt><dd>{{ v.igv | currency: 'PEN' : 'S/ ' }}</dd>
-        <dt class="total">Total</dt><dd class="total cifra">{{ v.total | currency: 'PEN' : 'S/ ' }}</dd>
-      </dl>
+    </div>
+    <div class="ticket comprobante">
+      <div class="centro"><b>FERRETERÍA</b><br>{{ v.tipoComprobante === 'FACTURA' ? 'FACTURA' : 'BOLETA DE VENTA' }} ELECTRÓNICA<br>{{ v.comprobante }} · {{ v.fecha | date: 'dd/MM/yyyy HH:mm' }}</div>
+      @if (v.clienteDocumento) {
+        <div class="centro">Cliente: {{ v.clienteNombre }} ({{ v.clienteDocumento }})</div>
+      }
+      <hr>
+      @for (d of v.detalles; track d.codigo) {
+        <div>{{ d.descripcion }}</div>
+        <div class="fila"><span>{{ d.cantidad }} x {{ d.precioUnitario | currency: 'PEN' : '' }}</span><span>{{ d.subtotal | currency: 'PEN' : '' }}</span></div>
+      }
+      <hr>
+      <div class="fila"><span>OP. GRAVADA</span><span>{{ v.gravada | currency: 'PEN' : '' }}</span></div>
+      <div class="fila"><span>IGV 18%</span><span>{{ v.igv | currency: 'PEN' : '' }}</span></div>
+      <div class="fila total"><span>TOTAL S/</span><span>{{ v.total | currency: 'PEN' : '' }}</span></div>
+      @if (vueltoUltimo(); as vu) {
+        <div class="fila"><span>EFECTIVO</span><span>{{ vu.recibido | currency: 'PEN' : '' }}</span></div>
+        <div class="fila"><span>VUELTO</span><span>{{ vu.vuelto | currency: 'PEN' : '' }}</span></div>
+      }
+      <hr>
+      <div class="centro">Atendió: {{ v.vendedor }}</div>
     </div>
   </section>
 }
 
-<div class="pos no-imprimir">
-  <div class="pos-izquierda">
-    <div class="tarjeta pos-buscador">
-      <form class="buscador-venta" (ngSubmit)="buscar()" role="search">
-        <div class="input-icono flex-grow-1">
-          <i class="bi bi-upc-scan" aria-hidden="true"></i>
-          <input class="form-control form-control-lg" placeholder="Código o descripción del producto"
-                 aria-label="Código o descripción del producto" name="texto" [(ngModel)]="texto" autofocus autocomplete="off">
-        </div>
-        <button class="btn btn-marca btn-lg" type="submit">Buscar</button>
-      </form>
-      @if (resultados().length > 1) {
-        <div class="resultados-venta" role="list">
-          <div class="resultados-venta-titulo">{{ resultados().length }} productos encontrados: elija uno</div>
-          @for (p of resultados(); track p.id) {
-            <button type="button" class="resultado" role="listitem" (click)="agregar(p)" [disabled]="p.stock === 0">
-              <span class="resultado-nombre">
-                <span class="celda-principal">{{ p.descripcion }}</span>
-                <span class="celda-sub">{{ p.codigo }} · {{ p.stock === 0 ? 'sin stock' : 'stock ' + p.stock }}</span>
+<div class="punto-venta no-imprimir">
+  <!-- Pasillos: vender sin escribir -->
+  <nav class="tarjeta pasillos" aria-label="Pasillos">
+    <div class="tarjeta-titulo"><h2>Pasillos</h2><span class="extra">sin escribir</span></div>
+    @for (pa of pasillos(); track pa.nombre) {
+      <div class="pasillo {{ estilo(pa.nombre).tono }}" [class.abierto]="pasilloAbierto() === pa.nombre">
+        <button type="button" class="pasillo-cabeza" (click)="alternarPasillo(pa.nombre)" [attr.aria-expanded]="pasilloAbierto() === pa.nombre">
+          <i class="bi {{ estilo(pa.nombre).icono }}" aria-hidden="true"></i>
+          <span class="flex-grow-1 text-start">{{ pa.nombre }}</span>
+          <span class="pasillo-cuenta">{{ pa.productos.length }}</span>
+          <i class="bi" [class.bi-chevron-up]="pasilloAbierto() === pa.nombre" [class.bi-chevron-down]="pasilloAbierto() !== pa.nombre" aria-hidden="true"></i>
+        </button>
+        @if (pasilloAbierto() === pa.nombre) {
+          @for (p of pa.productos; track p.id) {
+            <button type="button" class="pasillo-prod" (click)="agregar(p)" [disabled]="p.stock === 0">
+              <span class="rot"><span>{{ p.codigo }}</span></span>
+              <span class="flex-grow-1 text-start">{{ p.descripcion }}
+                @if (nivel(p) !== 'ok') {<small class="d-block" [class.text-danger]="nivel(p) === 'critico'">{{ p.stock === 0 ? 'Agotado' : 'Quedan ' + p.stock }}</small>}
               </span>
-              <span class="resultado-precio">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</span>
-              <i class="bi bi-plus-circle resultado-mas" aria-hidden="true"></i>
+              <b class="text-nowrap">{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</b>
+              @if (cantidadEnCarrito(p)) {
+                <span class="pill pill-solida">{{ cantidadEnCarrito(p) }}</span>
+              } @else {
+                <i class="bi bi-plus-square texto-sec" aria-hidden="true"></i>
+              }
             </button>
           }
-        </div>
-      } @else if (sinResultados()) {
-        <p class="small texto-sec mt-2 mb-0"><i class="bi bi-info-circle"></i> No hay productos para «{{ sinResultados() }}». Revise el código o busque por descripción.</p>
-      }
-    </div>
+        }
+      </div>
+    }
+  </nav>
 
-    <section class="tarjeta" aria-labelledby="titulo-carrito">
+  <div class="centro-venta">
+    <form class="escaner" (ngSubmit)="buscar()" role="search">
+      <div class="input-icono flex-grow-1">
+        <i class="bi bi-upc-scan" aria-hidden="true"></i>
+        <input #buscador class="form-control" placeholder="Código o descripción del producto"
+               aria-label="Código o descripción del producto" name="texto" [(ngModel)]="texto" autofocus autocomplete="off">
+      </div>
+      <button class="btn btn-tinta" type="submit">Buscar <span class="tecla">Enter</span></button>
+    </form>
+    @if (resultados().length > 1) {
+      <div class="tarjeta p-0 resultados-venta" role="list" aria-label="Resultados de la búsqueda">
+        <div class="resultados-venta-titulo">{{ resultados().length }} productos encontrados: elija uno</div>
+        @for (p of resultados(); track p.id) {
+          <button type="button" class="resultado {{ estilo(p.categoriaNombre).tono }}" role="listitem" (click)="agregar(p)" [disabled]="p.stock === 0">
+            <span class="rot"><span>{{ p.codigo }}</span></span>
+            <span class="flex-grow-1 text-start">{{ p.descripcion }}<small class="d-block texto-sec">{{ p.stock === 0 ? 'sin stock' : 'stock ' + p.stock }}</small></span>
+            <b>{{ p.precioVenta | currency: 'PEN' : 'S/ ' }}</b>
+            <i class="bi bi-plus-square" aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+    } @else if (sinResultados()) {
+      <p class="small texto-sec mb-0"><i class="bi bi-info-circle"></i> No hay productos para «{{ sinResultados() }}». Revise el código o busque por descripción.</p>
+    }
+
+    <section class="tarjeta carrito" aria-labelledby="t-carrito">
       <div class="tarjeta-titulo">
-        <h2 id="titulo-carrito">Carrito</h2>
-        <span class="extra">{{ unidades() }} {{ unidades() === 1 ? 'unidad' : 'unidades' }}</span>
+        <h2 id="t-carrito">Carrito</h2>
+        <span class="extra">{{ unidades() }} {{ unidades() === 1 ? 'unidad' : 'unidades' }} · {{ lineas().length }} {{ lineas().length === 1 ? 'producto' : 'productos' }}</span>
       </div>
       @if (lineas().length === 0) {
         <div class="vacio">
           <i class="bi bi-upc-scan"></i>
           <strong>Busque un producto para empezar la venta.</strong>
-          Con lector de código de barras, el producto se agrega solo al escanear.
+          <span>Escanee el código, escríbalo o elíjalo en un pasillo. Con lector de código, el producto entra solo.</span>
         </div>
       } @else {
         <div class="table-responsive">
           <table class="table align-middle tabla-carrito">
-            <thead><tr><th>Producto</th><th class="text-center">Cant.</th><th class="text-end d-none d-sm-table-cell">P. unit.</th><th class="text-end">Importe</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
+            <thead><tr><th>Rótulo</th><th>Producto</th><th class="text-center">Cant.</th><th class="text-end d-none d-md-table-cell">P. unit.</th><th class="text-end">Importe</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
             <tbody>
               @for (l of lineas(); track l.producto.id) {
-                <tr>
+                <tr class="{{ estilo(l.producto.categoriaNombre).tono }}">
+                  <td><span class="rot"><span>{{ l.producto.codigo }}</span></span></td>
                   <td>
                     <span class="celda-principal">{{ l.producto.descripcion }}</span>
-                    <span class="celda-sub">{{ l.producto.codigo }}<span class="d-sm-none"> · {{ l.producto.precioVenta | currency: 'PEN' : 'S/ ' }} c/u</span></span>
+                    <span class="celda-sub">{{ l.producto.categoriaNombre }} · stock {{ l.producto.stock }}<span class="d-md-none"> · {{ l.producto.precioVenta | currency: 'PEN' : 'S/ ' }} c/u</span></span>
                   </td>
                   <td>
                     <div class="cantidad">
@@ -110,10 +137,10 @@
                               [disabled]="l.cantidad >= l.producto.stock" [attr.aria-label]="'Agregar una unidad de ' + l.producto.descripcion"><i class="bi bi-plus"></i></button>
                     </div>
                   </td>
-                  <td class="text-end d-none d-sm-table-cell texto-sec">{{ l.producto.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
-                  <td class="text-end fw-semibold">{{ l.producto.precioVenta * l.cantidad | currency: 'PEN' : 'S/ ' }}</td>
+                  <td class="text-end d-none d-md-table-cell texto-sec">{{ l.producto.precioVenta | currency: 'PEN' : 'S/ ' }}</td>
+                  <td class="text-end"><b class="cifra importe">{{ l.producto.precioVenta * l.cantidad | currency: 'PEN' : 'S/ ' }}</b></td>
                   <td class="text-end">
-                    <button class="btn btn-sm btn-peligro btn-icono" (click)="quitar(l)" title="Quitar" aria-label="Quitar"><i class="bi bi-trash"></i></button>
+                    <button class="btn btn-sm btn-peligro btn-icono" (click)="quitar(l)" title="Quitar" aria-label="Quitar"><i class="bi bi-x-lg"></i></button>
                   </td>
                 </tr>
               }
@@ -121,62 +148,98 @@
           </table>
         </div>
       }
+      <div class="totales-carrito">
+        <div><span class="sobretitulo">Op. gravada</span><span class="cifra">{{ gravada() | currency: 'PEN' : 'S/ ' }}</span></div>
+        <div><span class="sobretitulo">IGV 18 %</span><span class="cifra">{{ igv() | currency: 'PEN' : 'S/ ' }}</span></div>
+        <div class="total"><span class="sobretitulo">Total</span><span class="cifra">{{ total() | currency: 'PEN' : 'S/ ' }}</span></div>
+      </div>
     </section>
   </div>
 
-  <aside class="tarjeta cobro" aria-labelledby="titulo-cobro">
-    <h2 class="cobro-titulo" id="titulo-cobro">Cobro</h2>
+  <aside class="lado-cobro">
+    <section class="tarjeta cobro" aria-labelledby="t-cobro">
+      <h2 class="visually-hidden" id="t-cobro">Cobro</h2>
+      <div class="segmentado mb-3" role="group" aria-label="Tipo de comprobante">
+        <input type="radio" class="btn-check" id="boleta" name="tipoComprobante" value="BOLETA" [(ngModel)]="tipoComprobante">
+        <label class="btn" for="boleta"><i class="bi bi-receipt"></i> Boleta</label>
+        <input type="radio" class="btn-check" id="factura" name="tipoComprobante" value="FACTURA" [(ngModel)]="tipoComprobante">
+        <label class="btn" for="factura"><i class="bi bi-building"></i> Factura</label>
+      </div>
 
-    <span class="form-label d-block">Comprobante</span>
-    <div class="segmentado mb-3" role="group" aria-label="Tipo de comprobante">
-      <input type="radio" class="btn-check" id="boleta" name="tipoComprobante" value="BOLETA" [(ngModel)]="tipoComprobante">
-      <label class="btn" for="boleta"><i class="bi bi-receipt"></i> Boleta</label>
-      <input type="radio" class="btn-check" id="factura" name="tipoComprobante" value="FACTURA" [(ngModel)]="tipoComprobante">
-      <label class="btn" for="factura"><i class="bi bi-building"></i> Factura</label>
-    </div>
-
-    <div class="mb-3">
       @if (tipoComprobante === 'FACTURA') {
         <label class="form-label" for="documento">RUC del cliente</label>
         <input id="documento" class="form-control mb-2" placeholder="11 dígitos, empieza con 10 o 20" maxlength="11" inputmode="numeric" [(ngModel)]="documento">
         <label class="form-label" for="razon">Razón social</label>
-        <input id="razon" class="form-control" [(ngModel)]="razonSocial">
+        <input id="razon" class="form-control mb-3" [(ngModel)]="razonSocial">
       } @else {
-        <label class="form-label" for="documento">DNI del cliente <span class="fw-normal texto-sec">(opcional)</span></label>
+        <label class="form-label" for="documento">DNI del cliente (opcional)</label>
         <input id="documento" class="form-control" placeholder="8 dígitos" maxlength="8" inputmode="numeric" [(ngModel)]="documento">
-        <div class="form-text">Obligatorio si la boleta supera S/ 700.</div>
+        <div class="form-text mb-3">Obligatorio si la boleta supera S/ 700.</div>
         @if (documento.trim()) {
-          <label class="form-label mt-2" for="nombre">Nombre del cliente <span class="fw-normal texto-sec">(opcional)</span></label>
-          <input id="nombre" class="form-control" [(ngModel)]="razonSocial">
+          <label class="form-label" for="nombre">Nombre del cliente (opcional)</label>
+          <input id="nombre" class="form-control mb-3" [(ngModel)]="razonSocial">
         }
       }
-    </div>
 
-    <span class="form-label d-block">Método de pago</span>
-    <div class="segmentado segmentado-pago mb-3" role="group" aria-label="Método de pago">
-      <input type="radio" class="btn-check" id="pago-efectivo" name="metodoPago" value="EFECTIVO" [(ngModel)]="metodoPago">
-      <label class="btn" for="pago-efectivo"><i class="bi bi-cash"></i> Efectivo</label>
-      <input type="radio" class="btn-check" id="pago-tarjeta" name="metodoPago" value="TARJETA" [(ngModel)]="metodoPago">
-      <label class="btn" for="pago-tarjeta"><i class="bi bi-credit-card"></i> Tarjeta</label>
-      <input type="radio" class="btn-check" id="pago-yape" name="metodoPago" value="YAPE" [(ngModel)]="metodoPago">
-      <label class="btn" for="pago-yape"><i class="bi bi-phone"></i> Yape / Plin</label>
-    </div>
+      <span class="form-label d-block">Pago</span>
+      <div class="segmentado mb-3" role="group" aria-label="Método de pago">
+        <input type="radio" class="btn-check" id="pago-efectivo" name="metodoPago" value="EFECTIVO" [(ngModel)]="metodoPago">
+        <label class="btn" for="pago-efectivo"><i class="bi bi-cash"></i> Efectivo</label>
+        <input type="radio" class="btn-check" id="pago-tarjeta" name="metodoPago" value="TARJETA" [(ngModel)]="metodoPago">
+        <label class="btn" for="pago-tarjeta"><i class="bi bi-credit-card"></i> Tarjeta</label>
+        <input type="radio" class="btn-check" id="pago-yape" name="metodoPago" value="YAPE" [(ngModel)]="metodoPago">
+        <label class="btn" for="pago-yape"><i class="bi bi-phone"></i> Yape</label>
+      </div>
 
-    <dl class="cobro-montos">
-      <dt>Op. gravada</dt><dd>{{ gravada() | currency: 'PEN' : 'S/ ' }}</dd>
-      <dt>IGV (18 %)</dt><dd>{{ igv() | currency: 'PEN' : 'S/ ' }}</dd>
-    </dl>
-    <div class="cobro-total">
-      <span>Total</span>
-      <span class="cifra">{{ total() | currency: 'PEN' : 'S/ ' }}</span>
-    </div>
-
-    <button class="btn btn-marca btn-lg w-100 btn-cobrar" [disabled]="lineas().length === 0 || enviando()" (click)="cobrar()">
-      @if (enviando()) {
-        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Registrando…
-      } @else {
-        <i class="bi bi-check2-circle"></i> Cobrar
+      @if (metodoPago === 'EFECTIVO' && lineas().length > 0) {
+        <div class="vuelto">
+          <div>
+            <label class="form-label" for="recibido">Recibe (S/)</label>
+            <input id="recibido" type="number" min="0" step="0.10" class="form-control" inputmode="decimal" placeholder="0.00"
+                   [ngModel]="recibido()" (ngModelChange)="recibido.set($event)">
+          </div>
+          <div class="vuelto-cifra" [class.falta]="falta() !== null" aria-live="polite">
+            <span class="form-label d-block">{{ falta() !== null ? 'Falta' : 'Vuelto' }}</span>
+            <span class="cifra">{{ (falta() ?? vuelto() ?? 0) | currency: 'PEN' : 'S/ ' }}</span>
+          </div>
+          <div class="montos-rapidos">
+            @for (m of montosRapidos(); track m.texto) {
+              <button type="button" class="btn btn-suave btn-sm" [class.elegido]="recibido() === m.monto" (click)="recibido.set(m.monto)">{{ m.texto }}</button>
+            }
+          </div>
+        </div>
       }
-    </button>
+
+      <button class="btn btn-marca btn-lg w-100 btn-cobrar" [disabled]="lineas().length === 0 || enviando()" (click)="cobrar()">
+        @if (enviando()) {
+          <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Registrando…
+        } @else {
+          <i class="bi bi-check2-circle"></i> Cobrar <span class="cifra">{{ total() | currency: 'PEN' : 'S/ ' }}</span> <span class="tecla">F9</span>
+        }
+      </button>
+    </section>
+
+    <!-- Vista previa del ticket: aparece desde 1600 px, donde sobra alto en la columna de cobro. -->
+    @if (lineas().length > 0) {
+      <div class="vista-ticket" aria-hidden="true">
+        <span class="sobretitulo d-block text-center mb-2">Así saldrá el ticket (80 mm)</span>
+        <div class="ticket">
+          <div class="centro"><b>FERRETERÍA</b><br>{{ tipoComprobante === 'FACTURA' ? 'FACTURA' : 'BOLETA DE VENTA' }} ELECTRÓNICA<br>N.° al cobrar</div>
+          <hr>
+          @for (l of lineas(); track l.producto.id) {
+            <div>{{ l.producto.descripcion }}</div>
+            <div class="fila"><span>{{ l.cantidad }} x {{ l.producto.precioVenta | currency: 'PEN' : '' }}</span><span>{{ l.producto.precioVenta * l.cantidad | currency: 'PEN' : '' }}</span></div>
+          }
+          <hr>
+          <div class="fila"><span>OP. GRAVADA</span><span>{{ gravada() | currency: 'PEN' : '' }}</span></div>
+          <div class="fila"><span>IGV 18%</span><span>{{ igv() | currency: 'PEN' : '' }}</span></div>
+          <div class="fila total"><span>TOTAL S/</span><span>{{ total() | currency: 'PEN' : '' }}</span></div>
+          @if (metodoPago === 'EFECTIVO' && vuelto() !== null) {
+            <div class="fila"><span>EFECTIVO</span><span>{{ recibido() | currency: 'PEN' : '' }}</span></div>
+            <div class="fila"><span>VUELTO</span><span>{{ vuelto() | currency: 'PEN' : '' }}</span></div>
+          }
+        </div>
+      </div>
+    }
   </aside>
 </div>

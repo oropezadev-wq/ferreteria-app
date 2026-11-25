@@ -6,6 +6,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { Categoria, Producto } from '../../models/modelos';
 import { ApiService, mensajeDeError } from '../../services/api.service';
 import { estiloCategoria } from '../../services/categorias';
+import { coberturaMinimo, nivelStock } from '../../services/niveles';
 
 @Component({
   selector: 'app-productos',
@@ -34,6 +35,18 @@ export class Productos implements OnInit {
     ),
   );
   protected readonly cantidadStockBajo = computed(() => this.productos().filter((p) => p.stockBajo && p.activo).length);
+  /** Cuántos productos hay en cada categoría (para los botones de pasillo). */
+  protected readonly porCategoria = computed(() => {
+    const mapa = new Map<number, number>();
+    for (const p of this.productos()) {
+      mapa.set(p.categoriaId, (mapa.get(p.categoriaId) ?? 0) + 1);
+    }
+    return mapa;
+  });
+  /** Densidad de la tabla: compacta muestra más filas en pantallas grandes. */
+  protected readonly densa = signal(false);
+  protected readonly nivel = nivelStock;
+  protected readonly cobertura = coberturaMinimo;
 
   /** Margen sobre el precio de venta (lo que queda de cada sol vendido). */
   margen(p: Producto): number | null {

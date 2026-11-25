@@ -1,22 +1,23 @@
 /**
- * Ícono y tono de color de cada categoría. La API no guarda imágenes de productos:
+ * Ícono y color de pasillo de cada categoría. La API no guarda imágenes de productos:
  * cada tarjeta se ilustra con el ícono del rubro. Las categorías nuevas que cree el
  * administrador reciben un tono fijo según su nombre y el ícono genérico de caja.
  */
 export interface EstiloCategoria {
   icono: string;
+  /** Clase de pasillo (define --cat con el color de la categoría). */
   tono: string;
 }
 
 const REGLAS: { clave: RegExp; icono: string; tono: string }[] = [
-  { clave: /gasfit|plomer|tuber/, icono: 'bi-droplet-half', tono: 'tono-agua' },
-  { clave: /electr/, icono: 'bi-lightning-charge', tono: 'tono-ocre' },
-  { clave: /manual|herramient/, icono: 'bi-hammer', tono: 'tono-arcilla' },
-  { clave: /pintur/, icono: 'bi-paint-bucket', tono: 'tono-oliva' },
-  { clave: /tornill|fijaci|clavo|perno/, icono: 'bi-nut', tono: 'tono-acero' },
+  { clave: /gasfit|plomer|tuber/, icono: 'bi-droplet-half', tono: 'pasillo-agua' },
+  { clave: /electr/, icono: 'bi-lightning-charge', tono: 'pasillo-ocre' },
+  { clave: /manual|herramient/, icono: 'bi-hammer', tono: 'pasillo-ciruela' },
+  { clave: /pintur/, icono: 'bi-paint-bucket', tono: 'pasillo-musgo' },
+  { clave: /tornill|fijaci|clavo|perno/, icono: 'bi-nut', tono: 'pasillo-pizarra' },
 ];
 
-const TONOS_LIBRES = ['tono-acero', 'tono-oliva', 'tono-arcilla', 'tono-agua', 'tono-ocre'];
+const TONOS_LIBRES = ['pasillo-pizarra', 'pasillo-musgo', 'pasillo-ciruela', 'pasillo-agua', 'pasillo-ocre'];
 
 function normalizar(texto: string): string {
   return texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');

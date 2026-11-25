@@ -93,3 +93,36 @@
     }
   </div>
 }
+
+@if (turno() || cerrado()) {
+  <section class="tarjeta p-0 mt-3" aria-labelledby="t-ventas-turno">
+    <div class="tarjeta-titulo px-3 pt-3">
+      <h2 id="t-ventas-turno">Ventas de este turno</h2>
+      <span class="extra">{{ ventasTurno().length }} comprobantes · para cuadrar el arqueo</span>
+    </div>
+    <div class="table-responsive tabla-alto">
+      <table class="table align-middle tabla-plana">
+        <thead><tr><th>Hora</th><th>Comprobante</th><th>Pago</th><th>Estado</th><th class="text-end">Total</th></tr></thead>
+        <tbody>
+          @for (v of ventasTurno(); track v.id) {
+            <tr [class.fila-inactiva]="v.estado === 'ANULADA'">
+              <td class="mono texto-sec">{{ v.fecha | date: 'HH:mm' }}</td>
+              <td class="celda-principal">{{ v.comprobante }}</td>
+              <td>{{ metodo[v.metodoPago] }}</td>
+              <td>
+                @if (v.estado === 'ANULADA') {
+                  <span class="pill pill-error">Anulada (no suma)</span>
+                } @else {
+                  <span class="pill pill-ok">Registrada</span>
+                }
+              </td>
+              <td class="text-end fw-semibold">{{ v.total | currency: 'PEN' : 'S/ ' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5"><div class="vacio"><strong>Todavía no hay ventas en este turno.</strong></div></td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}

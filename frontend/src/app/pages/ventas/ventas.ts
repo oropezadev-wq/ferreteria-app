@@ -1,9 +1,12 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 import { MetodoPago, Producto, TipoComprobante, Venta } from '../../models/modelos';
 import { ApiService, mensajeDeError } from '../../services/api.service';
+import { estiloCategoria, iconoProducto } from '../../services/categorias';
+import { nivelStock } from '../../services/niveles';
 
 interface LineaVenta {
   producto: Producto;
@@ -19,8 +22,43 @@ const TOPE_BOLETA_SIN_DNI = 700;
   imports: [CurrencyPipe, DatePipe, FormsModule],
   templateUrl: './ventas.html',
 })
-export class Ventas {
+export class Ventas implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly ruta = inject(ActivatedRoute);
+  private readonly buscador = viewChild<ElementRef<HTMLInputElement>>('buscador');
+  protected readonly estilo = estiloCategoria;
+  protected readonly icono = iconoProducto;
+  protected readonly nivel = nivelStock;
+
+  /** Productos activos agrupados por pasillo (categoría) para vender sin escribir. */
+  protected readonly catalogo = signal<Producto[]>([]);
+  protected readonly pasilloAbierto = signal<string | null>(null);
+  protected readonly pasillos = computed(() => {
+    const mapa = new Map<string, Producto[]>();
+    for (const p of this.catalogo()) {
+      mapa.set(p.categoriaNombre, [...(mapa.get(p.categoriaNombre) ?? []), p]);
+    }
+    return [...mapa.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], 'es'))
+      .map(([nombre, productos]) => ({ nombre, productos }));
+  });
+
+  /** Monto que entrega el cliente (solo pantalla; no se envía a la API). */
+  protected readonly recibido = signal<number | null>(null);
+  protected readonly vuelto = computed(() => {
+    const r = this.recibido();
+    return r !== null && r >= this.total() ? r - this.total() : null;
+  });
+  protected readonly falta = computed(() => {
+    const r = this.recibido();
+    return r !== null && r < this.total() ? this.total() - r : null;
+  });
+  /** Montos rápidos: exacto y billetes que alcanzan para el total. */
+  protected readonly montosRapidos = computed(() => {
+    const t = this.total();
+    return [{ texto: 'Exacto', monto: t }, ...[20, 50, 100, 200].filter((b) => b > t).slice(0, 3).map((b) => ({ texto: `S/ ${b}`, monto: b }))];
+  });
+  protected readonly vueltoUltimo = signal<{ recibido: number; vuelto: number } | null>(null);
 
   protected texto = '';
   protected metodoPago: MetodoPago = 'EFECTIVO';
@@ -43,6 +81,52 @@ export class Ventas {
   );
   protected readonly gravada = computed(() => this.total() / (1 + TASA_IGV));
   protected readonly igv = computed(() => this.total() - this.gravada());
+
+  ngOnInit(): void {
+    this.recargarCatalogo();
+    // Desde el panel se llega con ?buscar=CÓDIGO: un solo resultado entra directo al carrito.
+    const buscar = this.ruta.snapshot.queryParamMap.get('buscar');
+    if (buscar) {
+      this.texto = buscar;
+      this.buscar();
+    }
+  }
+
+  /** Recarga los pasillos (también después de cobrar, para mostrar el stock al día). */
+  private recargarCatalogo(): void {
+    this.api.buscarProductos('', true).subscribe({
+      next: (lista) => {
+        this.catalogo.set(lista);
+        if (!this.pasilloAbierto() && this.pasillos().length) {
+          this.pasilloAbierto.set(this.pasillos()[0].nombre);
+        }
+      },
+      error: (e) => this.error.set(mensajeDeError(e)),
+    });
+  }
+
+  alternarPasillo(nombre: string): void {
+    this.pasilloAbierto.set(this.pasilloAbierto() === nombre ? null : nombre);
+  }
+
+  cantidadEnCarrito(p: Producto): number {
+    return this.lineas().find((l) => l.producto.id === p.id)?.cantidad ?? 0;
+  }
+
+  /** F2: venta nueva y cursor en el buscador. F9: cobrar. */
+  @HostListener('document:keydown', ['$event'])
+  atajos(evento: KeyboardEvent): void {
+    if (evento.key === 'F2') {
+      evento.preventDefault();
+      this.nuevaVenta();
+      this.buscador()?.nativeElement.focus();
+    } else if (evento.key === 'F9') {
+      evento.preventDefault();
+      if (this.lineas().length > 0 && !this.enviando()) {
+        this.cobrar();
+      }
+    }
+  }
 
   /** RF3: búsqueda real contra la API (el lector de código de barras escribe y envía Enter). */
   buscar(): void {
@@ -131,7 +215,11 @@ export class Ventas {
       .subscribe({
         next: (venta) => {
           this.enviando.set(false);
+          const recibido = this.recibido();
+          this.vueltoUltimo.set(this.metodoPago === 'EFECTIVO' && recibido !== null && recibido >= venta.total ? { recibido, vuelto: recibido - venta.total } : null);
+          this.recibido.set(null);
           this.ultimaVenta.set(venta);
+          this.recargarCatalogo();
           this.mensaje.set(`Venta registrada: ${venta.comprobante} por S/ ${venta.total.toFixed(2)}.`);
           this.lineas.set([]);
           this.documento = '';
@@ -146,6 +234,7 @@ export class Ventas {
 
   nuevaVenta(): void {
     this.ultimaVenta.set(null);
+    this.vueltoUltimo.set(null);
     this.mensaje.set('');
   }
 

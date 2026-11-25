@@ -1,58 +1,53 @@
-<div class="armazon">
-  <nav class="lateral" [class.abierto]="menuAbierto()" aria-label="Menú principal">
-    <a routerLink="/panel" class="lateral-marca" (click)="menuAbierto.set(false)">
-      <span class="marca-sello"><i class="bi bi-tools"></i></span>
-      <span>
-        <span class="lateral-nombre">Ferretería</span>
-        <span class="lateral-lema">Ventas e inventario</span>
-      </span>
-    </a>
+<header class="barra">
+  <a routerLink="/panel" class="barra-marca" aria-label="Ferretería, panel principal">
+    <span class="marca-sello"><i class="bi bi-tools"></i></span>
+    <span class="barra-nombre">FERRETERÍA</span>
+  </a>
 
-    @for (grupo of grupos(); track grupo.nombre) {
-      <div class="lateral-grupo">
-        <div class="lateral-titulo">{{ grupo.nombre }}</div>
-        <ul class="nav flex-column">
-          @for (opcion of grupo.opciones; track opcion.ruta) {
-            <li class="nav-item">
-              <a class="nav-link" [routerLink]="opcion.ruta" routerLinkActive="activo" ariaCurrentWhenActive="page"
-                 (click)="menuAbierto.set(false)">
-                <i class="bi {{ opcion.icono }}" aria-hidden="true"></i>{{ opcion.texto }}
-              </a>
-            </li>
-          }
-        </ul>
-      </div>
+  <nav class="pestanas" aria-label="Menú principal">
+    @for (opcion of opciones(); track opcion.ruta) {
+      <a class="pestana" [routerLink]="opcion.ruta" routerLinkActive="activo" ariaCurrentWhenActive="page">
+        <i class="bi {{ opcion.icono }}" aria-hidden="true"></i>{{ opcion.texto }}
+      </a>
     }
-
-    <a routerLink="/catalogo" class="lateral-pie">
-      <i class="bi bi-shop" aria-hidden="true"></i> Ver catálogo público
-    </a>
   </nav>
 
-  @if (menuAbierto()) {
-    <div class="fondo-menu" (click)="menuAbierto.set(false)" aria-hidden="true"></div>
-  }
-
-  <div class="contenido">
-    <header class="barra-superior">
-      <button class="btn btn-suave btn-icono d-lg-none" (click)="menuAbierto.set(!menuAbierto())"
-              [attr.aria-expanded]="menuAbierto()" aria-label="Abrir menú">
-        <i class="bi bi-list fs-5"></i>
-      </button>
-      <span class="barra-fecha d-none d-sm-inline">{{ hoy }}</span>
-      <div class="barra-usuario">
-        <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
-        <span class="lh-sm d-none d-sm-block">
-          <span class="d-block fw-semibold text-nowrap">{{ auth.usuario()?.nombre }}</span>
-          <span class="d-block small texto-sec">{{ auth.esAdministrador() ? 'Administrador' : 'Vendedor' }}</span>
-        </span>
-      </div>
-      <button class="btn btn-suave btn-sm text-nowrap" (click)="salir()">
-        <i class="bi bi-box-arrow-right"></i> Salir
-      </button>
-    </header>
-    <main class="pagina">
-      <router-outlet />
-    </main>
+  <div class="barra-usuario">
+    <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
+    <span class="barra-quien">
+      <span class="d-block fw-bold text-nowrap">{{ auth.usuario()?.nombre }}</span>
+      <span class="d-block">{{ auth.esAdministrador() ? 'Administrador' : 'Vendedor' }}</span>
+    </span>
+    <button class="btn btn-sm barra-salir" (click)="salir()">
+      <i class="bi bi-box-arrow-right"></i> Salir
+    </button>
   </div>
-</div>
+</header>
+
+<main class="pagina">
+  <router-outlet />
+</main>
+
+<!-- Celular y tableta: accesos principales abajo, al alcance del pulgar. -->
+<nav class="abajo" aria-label="Menú">
+  @for (opcion of abajo(); track opcion.ruta) {
+    <a [routerLink]="opcion.ruta" routerLinkActive="activo" ariaCurrentWhenActive="page">
+      <i class="bi {{ opcion.icono }}" aria-hidden="true"></i>{{ opcion.corto }}
+    </a>
+  }
+  @if (enMas().length > 0) {
+    <button type="button" [class.activo]="masAbierto()" (click)="masAbierto.set(!masAbierto())" [attr.aria-expanded]="masAbierto()">
+      <i class="bi bi-grid" aria-hidden="true"></i>Más
+    </button>
+  }
+</nav>
+
+@if (masAbierto()) {
+  <div class="mas-fondo" (click)="masAbierto.set(false)" aria-hidden="true"></div>
+  <div class="mas-hoja" role="dialog" aria-label="Más opciones">
+    @for (opcion of enMas(); track opcion.ruta) {
+      <a [routerLink]="opcion.ruta" routerLinkActive="activo"><i class="bi {{ opcion.icono }}" aria-hidden="true"></i>{{ opcion.texto }}</a>
+    }
+    <a routerLink="/catalogo"><i class="bi bi-shop" aria-hidden="true"></i>Catálogo público</a>
+  </div>
+}
